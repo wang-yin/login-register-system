@@ -1,10 +1,28 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "CommonJS",
+    // 輸出 & 輸入
     "rootDir": "src",
     "outDir": "dist",
+
+    // 環境
+    "module": "commonjs", // 或 "nodenext"（如果你想用 ESModule）
+    "target": "ES2020", // Node.js 現代版足夠
+    "lib": ["ES2020"], // 用 ES2020 的標準 API
+    "types": ["node"], // 引入 Node.js 型別
+    "esModuleInterop": true, // 方便 import express from 'express'
+
+    // 除錯
+    "sourceMap": true,
+
+    // 嚴格模式
     "strict": true,
-    "esModuleInterop": true
-  }
+    "noImplicitAny": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+
+    // 跳過型別檢查第三方套件
+    "skipLibCheck": true
+  },
+  "include": ["src"],
+  "exclude": ["node_modules"]
 }

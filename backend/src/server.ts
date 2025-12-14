@@ -1,11 +1,10 @@
-import express from "express";
+import dotenv from "dotenv";
+dotenv.config();
 
-const app = express();
+import app from "./app";
 
-app.get("/", (req, res) => {
-  res.send("Backend is running!");
-});
+const PORT = 5000;
 
-app.listen(3000, () => {
-  console.log("Server running on http://localhost:3000");
+app.listen(PORT, () => {
+  console.log(`Server started on http://localhost:${PORT}`);
 });
