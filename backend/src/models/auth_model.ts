@@ -1,6 +1,6 @@
 import User from "./schema/UserSchema";
-import { RegisterInput } from "../types/auth";
-import { hashPassword } from "../utils/bcrypt";
+import { RegisterInput, LoginInput } from "../types/auth";
+import { hashPassword, verifyPassword } from "../utils/bcrypt";
 
 export const registerUser = async (data: RegisterInput) => {
   const existingUser = await User.findOne({ email: data.email });
@@ -17,4 +17,18 @@ export const registerUser = async (data: RegisterInput) => {
   });
 
   return newUser;
+};
+
+export const loginUser = async (data: LoginInput) => {
+  const findUser = await User.findOne({ email: data.email });
+  if (!findUser || !findUser.password) {
+    throw new Error("帳號密碼錯誤");
+  }
+
+  const isMatch = await verifyPassword(data.password, findUser.password);
+  if (!isMatch) {
+    throw new Error("帳號密碼錯誤");
+  }
+
+  return findUser;
 };
