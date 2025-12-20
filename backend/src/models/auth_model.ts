@@ -1,34 +1,18 @@
 import User from "./schema/UserSchema";
-import { RegisterInput, LoginInput } from "../types/auth";
-import { hashPassword, verifyPassword } from "../utils/bcrypt";
 
-export const registerUser = async (data: RegisterInput) => {
-  const existingUser = await User.findOne({ email: data.email });
-  if (existingUser) {
-    throw new Error("使用者已存在");
-  }
-
-  const hashedPassword = await hashPassword(data.password);
-
-  const newUser = await User.create({
-    name: data.name,
-    email: data.email,
-    password: hashedPassword,
-  });
-
-  return newUser;
+export const findUserByEmail = (email: string) => {
+  return User.findOne({ email });
 };
 
-export const loginUser = async (data: LoginInput) => {
-  const findUser = await User.findOne({ email: data.email });
-  if (!findUser || !findUser.password) {
-    throw new Error("帳號密碼錯誤");
-  }
-
-  const isMatch = await verifyPassword(data.password, findUser.password);
-  if (!isMatch) {
-    throw new Error("帳號密碼錯誤");
-  }
-
-  return findUser;
+export const createUser = (data: {
+  name: string;
+  email: string;
+  password: string;
+}) => {
+  return User.create({
+    name: data.name,
+    email: data.email,
+    password: data.password,
+    providers: [],
+  });
 };
