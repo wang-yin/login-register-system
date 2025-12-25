@@ -10,20 +10,26 @@ const UserSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
+      sparse: true,
+      lowercase: true,
     },
     password: {
       type: String,
-      required: function () {
-        return this.providers.length === 0;
+      required: function (this: any) {
+        return !this.providers || this.providers.length === 0;
       },
+      select: false,
     },
     providers: [
       {
         provider: {
           type: String,
-          enum: ["google", "facebook"],
+          enum: ["google", "github"],
         },
-        providerId: String,
+        providerId: {
+          type: String,
+          index: true,
+        },
       },
     ],
   },

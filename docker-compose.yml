@@ -2,10 +2,15 @@ services:
   # 後端服務
   backend:
     build: ./backend
+    volumes:
+      - ./backend:/app
+      - /app/node_modules # 避免本機 node_modules 蓋掉容器內的 linux 版本套件
     ports:
       - "5000:5000"
     env_file:
       - ./backend/.env
+    # 使用你 package.json 裡的 dev 指令
+    command: npm run dev 
     restart: always
 
   # 前端服務
