@@ -27,6 +27,26 @@ router.get(
   }
 );
 
+// google 登入入口
+router.get(
+  "/google",
+  passport.authenticate("google", { scope: ["profile", "email"] })
+);
+
+router.get(
+  "/google/callback",
+  passport.authenticate("google", {
+    session: false,
+    failureRedirect: "/api/auth/login-failed",
+  }),
+  (req: any, res) => {
+    res.status(200).json({
+      message: "Google 登入成功！",
+      user: req.user,
+    });
+  }
+);
+
 router.get("/login-failed", (req, res) => {
   res.status(401).json({ message: "OAuth 驗證失敗" });
 });
