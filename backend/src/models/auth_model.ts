@@ -1,7 +1,7 @@
 import User from "./schema/UserSchema";
 
 export const findUserByEmail = (email: string) => {
-  return User.findOne({ email });
+  return User.findOne({ email }).select("+password");
 };
 
 export const createUser = (data: {

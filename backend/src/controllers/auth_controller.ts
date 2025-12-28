@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { registerUser, loginUser } from "../services/auth_service";
+import { generateToken } from "../utils/jwt_utils";
 
 export const register = async (req: Request, res: Response) => {
   try {
@@ -16,7 +17,13 @@ export const register = async (req: Request, res: Response) => {
 export const login = async (req: Request, res: Response) => {
   try {
     const user = await loginUser(req.body);
-    res.status(201).json({ message: "登入成功", user });
+    const token = generateToken(user._id.toString());
+    console.log("生成的 Token 是:", token);
+    res.status(201).json({
+      message: "登入成功",
+      token: token,
+      user: { id: user._id, name: user.name, email: user.email },
+    });
   } catch (err: any) {
     res.status(400).json({ message: err.message });
   }

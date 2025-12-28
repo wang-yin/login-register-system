@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { register, login } from "../controllers/auth_controller";
 import passport from "passport";
+import { oauthSuccess } from "../controllers/oauth_controller";
 
 const router = Router();
 
@@ -19,12 +20,7 @@ router.get(
     session: false,
     failureRedirect: "/api/auth/login-failed",
   }),
-  (req: any, res) => {
-    res.status(200).json({
-      message: "GitHub 登入成功！",
-      user: req.user,
-    });
-  }
+  oauthSuccess
 );
 
 // google 登入入口
@@ -39,12 +35,7 @@ router.get(
     session: false,
     failureRedirect: "/api/auth/login-failed",
   }),
-  (req: any, res) => {
-    res.status(200).json({
-      message: "Google 登入成功！",
-      user: req.user,
-    });
-  }
+  oauthSuccess
 );
 
 router.get("/login-failed", (req, res) => {
