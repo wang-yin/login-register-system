@@ -7,3 +7,7 @@ const JWT_EXPIRES_IN = (process.env.JWT_EXPIRES_IN ||
 export const generateToken = (userId: string) => {
   return jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 };
+
+export const verifyToken = (token: string) => {
+  return jwt.verify(token, JWT_SECRET);
+};

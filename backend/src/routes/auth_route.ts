@@ -1,7 +1,8 @@
 import { Router } from "express";
-import { register, login } from "../controllers/auth_controller";
+import { register, login, getMe } from "../controllers/auth_controller";
 import passport from "passport";
 import { oauthSuccess } from "../controllers/oauth_controller";
+import { protect } from "../middleware/auth_middleware";
 
 const router = Router();
 
@@ -42,4 +43,6 @@ router.get("/login-failed", (req, res) => {
   res.status(401).json({ message: "OAuth 驗證失敗" });
 });
 
+// 測試
+router.get("/Success", protect, getMe);
 export default router;
