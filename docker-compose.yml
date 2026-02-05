@@ -15,9 +15,15 @@ services:
 
   # 前端服務
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend      # 指向前端資料夾
+      dockerfile: Dockerfile.dev
     ports:
       - "3000:3000"
-    restart: always
-    depends_on:
-      - backend
+    volumes:
+      - ./frontend:/app        # 本地程式碼對應到容器 /app
+      - /app/node_modules      # 匿名卷，保護容器內的 node_modules
+      - /app/.next             # 匿名卷，避免編譯暫存衝突
+    environment:
+      - WATCHPACK_POLLING=true # 讓 Docker 能感應到檔案存檔
+      - NODE_ENV=development

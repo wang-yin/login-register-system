@@ -12,7 +12,7 @@ router.post("/login", login);
 // 引導用戶去 github 授權
 router.get(
   "/github",
-  passport.authenticate("github", { scope: ["user:email"] })
+  passport.authenticate("github", { scope: ["user:email"] }),
 );
 // github 授權完後跳回的路徑
 router.get(
@@ -21,13 +21,13 @@ router.get(
     session: false,
     failureRedirect: "/api/auth/login-failed",
   }),
-  oauthSuccess
+  oauthSuccess,
 );
 
 // google 登入入口
 router.get(
   "/google",
-  passport.authenticate("google", { scope: ["profile", "email"] })
+  passport.authenticate("google", { scope: ["profile", "email"] }),
 );
 
 router.get(
@@ -36,13 +36,13 @@ router.get(
     session: false,
     failureRedirect: "/api/auth/login-failed",
   }),
-  oauthSuccess
+  oauthSuccess,
 );
 
 router.get("/login-failed", (req, res) => {
   res.status(401).json({ message: "OAuth 驗證失敗" });
 });
 
-// 測試
-router.get("/Success", protect, getMe);
+// 驗證路由
+router.get("/status", protect, getMe);
 export default router;

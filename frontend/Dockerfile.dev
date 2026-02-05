@@ -1,0 +1,16 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# 只安裝套件
+COPY package*.json ./
+RUN npm install
+
+# 開發模式下，我們會透過 Volume 掛載程式碼，所以這裡其實不需要 COPY . .
+# 但為了確保容器內有基本檔案，寫著也無妨
+COPY . .
+
+EXPOSE 3000
+
+# 執行開發伺服器
+CMD ["npm", "run", "dev"]
