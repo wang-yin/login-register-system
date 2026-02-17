@@ -45,13 +45,21 @@ export const createOAuthUser = (data: {
 export const addProviderToUser = (
   userId: string,
   provider: string,
-  providerId: string
+  providerId: string,
 ) => {
   return User.findByIdAndUpdate(
     userId,
     {
       $push: { providers: { provider, providerId } },
     },
-    { new: true }
+    { new: true },
   );
+};
+
+export const findByIdWithPassword = (id: string) => {
+  return User.findById(id).select("+password");
+};
+
+export const updatePassword = (id: string, passwordHash: string) => {
+  return User.findByIdAndUpdate(id, { password: passwordHash });
 };

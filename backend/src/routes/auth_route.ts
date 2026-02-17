@@ -1,5 +1,11 @@
 import { Router } from "express";
-import { register, login, getMe } from "../controllers/auth_controller";
+import {
+  register,
+  login,
+  getMe,
+  changePassword,
+  logout,
+} from "../controllers/auth_controller";
 import passport from "passport";
 import { oauthSuccess } from "../controllers/oauth_controller";
 import { protect } from "../middleware/auth_middleware";
@@ -39,10 +45,17 @@ router.get(
   oauthSuccess,
 );
 
+//登入失敗
 router.get("/login-failed", (req, res) => {
   res.status(401).json({ message: "OAuth 驗證失敗" });
 });
 
 // 驗證路由
 router.get("/status", protect, getMe);
+
+//更改密碼
+router.put("/change-password", protect, changePassword);
+
+//登出
+router.post("/logout", logout);
 export default router;
