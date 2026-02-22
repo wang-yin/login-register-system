@@ -19,14 +19,15 @@ export const register = async (req: Request, res: Response) => {
 
 export const login = async (req: Request, res: Response) => {
   try {
-    const user = await loginUser(req.body);
+    const { email, password, rememberMe } = req.body;
+    const user = await loginUser({ email, password });
     const token = generateToken(user._id.toString(), user.name);
 
     res.cookie("token", token, {
       httpOnly: true, // 核心：防止 JavaScript 讀取 (防 XSS)
       secure: process.env.NODE_ENV === "production", // 僅在 HTTPS 下傳輸
-      sameSite: "lax", // 防止 CSRF 攻擊的平衡設定
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 過期時間 (例如 7 天)
+      sameSite: "lax" as const, // 防止 CSRF 攻擊的平衡設定
+      maxAge: rememberMe ? 7 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000,
     });
 
     res.status(200).json({ message: "登入成功", user });

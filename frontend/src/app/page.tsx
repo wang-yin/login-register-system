@@ -1,21 +1,51 @@
-'use client'
+"use client"
 
 import RegisterForm from '@/components/RegisterForm'
 import LoginForm from '@/components/LoginForm'
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
+import apiClient from '@/src/api/axios'
 
 function HomeContent() {
-  const [isLogin, setIsLogin] = useState(false);
+  const [isLogin, setIsLogin] = useState(true); 
+  const [isChecking, setIsChecking] = useState(true);
   const searchParams = useSearchParams();
+  const router = useRouter();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const res = await apiClient.get("/auth/status");
+        if (res.data.user) {
+          // 如果已登入，直接換頁，且「不關閉」isChecking，防止表單閃現
+          router.replace("/auth/success");
+        } else {
+          setIsChecking(false);
+        }
+      } catch (error) {
+        // 未登入，關閉載入狀態，顯示表單
+        setIsChecking(false);
+      }
+    };
+
+    checkAuth();
+  }, [router]);
 
   useEffect(() => {
     const mode = searchParams.get('mode');
-    if (mode === 'login') setIsLogin(true);
-    else if (mode === 'register') setIsLogin(false);
+    // 2. 只有當 URL 明確指定為 'register' 時才顯示註冊，其餘（包含 null）維持登入
+    if (mode === 'register') {
+      setIsLogin(false);
+    } else {
+      setIsLogin(true);
+    }
   }, [searchParams]);
 
-  // 配置物件：將變動的部分抽離，讓 HTML 結構變得很乾淨
+  if (isChecking) {
+    return <div className="h-screen w-screen bg-gray-200" />; 
+  }
+
   const config = {
     login: {
       title: 'Welcome Back',

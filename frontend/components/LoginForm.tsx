@@ -3,22 +3,38 @@
 import SocialButtons from '@/components/SocialButtons'
 import { MdOutlineEmail } from 'react-icons/md'
 import { TbLockPassword } from 'react-icons/tb'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import apiClient from '@/src/api/axios'
 import { useRouter } from 'next/navigation'
 
 
 export default function LoginForm() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const [rememberMe, setRememberMe] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const router = useRouter()
 
+  useEffect(() => {
+    const savedEmail = localStorage.getItem("remembered_email");
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setRememberMe(true); // 只要有存過 Email，就預設勾起來
+    }
+  }, []);
+
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if(rememberMe) {
+      localStorage.setItem("remembered_email", email);
+    } else {
+      localStorage.removeItem("remembered_email");
+    }
+
     try {
-      await apiClient.post("/auth/login", { email, password });
-      
+      await apiClient.post("/auth/login", { email, password, rememberMe });
       alert("登入成功！")
       router.push("/auth/success");
     } catch (error: any) {
@@ -33,13 +49,14 @@ export default function LoginForm() {
       <form className="flex flex-col gap-9" onSubmit={handleLogin}>
         <div className="flex items-center bg-gray-100 py-2 px-2">
           <MdOutlineEmail size={25} />
-          <input className="px-2" type="email" placeholder="Email" onChange={(e) => setEmail(e.target.value)} required></input>
+          <input className="px-2" type="email" value={email} placeholder="Email" onChange={(e) => setEmail(e.target.value)} required></input>
         </div>
         <div className="flex items-center bg-gray-100 py-2 px-2">
           <TbLockPassword size={25} />
           <input
             className="px-2"
             type="password"
+            value={password}
             placeholder="Password"
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -51,6 +68,8 @@ export default function LoginForm() {
               type="checkbox"
               id="remember"
               className="cursor-pointer"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
             ></input>
             <span>Remember me</span>
           </label>

@@ -32,3 +32,8 @@ export const loginUser = async (data: LoginInput) => {
 
   return user;
 };
+
+export const changePassword = async (
+  oldPassword: String,
+  newPassword: String,
+) => {};
