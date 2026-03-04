@@ -8,7 +8,7 @@ import apiClient from '@/src/api/axios'
 import { useRouter } from 'next/navigation'
 
 
-export default function LoginForm() {
+export default function LoginForm({ onForgot } : () => void) {
   const [rememberMe, setRememberMe] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -73,15 +73,16 @@ export default function LoginForm() {
             ></input>
             <span>Remember me</span>
           </label>
-          <a
-            href="https://example.com"
-            className="text-blue-500 hover:text-blue-600"
+          <button 
+            type="button" // 記得設為 button 防止觸發表單 submit
+            onClick={onForgot} 
+            className="text-blue-500 hover:text-blue-800 cursor-pointer"
           >
             Forgot password
-          </a>
+          </button>
         </div>
         <button
-          className="rounded-full py-2 px-12 bg-green-300  text-white font-sansation cursor-pointer text-lg font-semibold"
+          className="rounded-full py-2 px-12 bg-green-300  text-white font-sansation cursor-pointer text-lg font-semibold hover:bg-green-400"
           type="submit"
         >
           SIGN IN

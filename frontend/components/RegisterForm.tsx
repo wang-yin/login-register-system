@@ -57,7 +57,7 @@ export default function RegisterForm({ setIsLogin }: RegisterProps) {
           ></input>
         </div>
         <button
-          className="rounded-full py-2 px-12 bg-blue-300 mt-4 text-white font-sansation cursor-pointer text-lg font-semibold"
+          className="rounded-full py-2 px-12 bg-blue-300 mt-4 text-white font-sansation cursor-pointer text-lg font-semibold hover:bg-blue-400"
           type="submit"
         >
           SIGN UP

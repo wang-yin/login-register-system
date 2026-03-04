@@ -1,9 +1,15 @@
 import { Request, Response } from "express";
+import crypto from "crypto";
 import { registerUser, loginUser } from "../services/auth_service";
 import { generateToken } from "../utils/jwt_utils";
 import { findById } from "../models/auth_model";
 import { verifyPassword, hashPassword } from "../utils/bcrypt";
-import { findByIdWithPassword, updatePassword } from "../models/auth_model";
+import {
+  findByIdWithPassword,
+  updatePassword,
+  findByEmail,
+} from "../models/auth_model";
+import { sendEmail } from "../utils/email_servuce";
 
 export const register = async (req: Request, res: Response) => {
   try {
@@ -107,4 +113,37 @@ export const logout = async (req: Request, res: Response) => {
   });
 
   res.status(200).json({ message: "登出成功" });
+};
+
+export const forgotPassword = async (req: Request, res: Response) => {
+  const { email } = req.body;
+  const user = await findByEmail(email);
+
+  if (!user) {
+    return res.status(404).json({ message: "該 Email 尚未註冊" });
+  }
+
+  const resetToken = crypto.randomBytes(20).toString("hex");
+
+  user.resetPasswordToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+  user.resetPasswordExpires = new Date(Date.now() + 15 * 60 * 1000);
+
+  await user.save();
+
+  // 寄信連結
+  const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+  const message = `您收到這封信是因為您（或某人）請求重設密碼。請點擊以下連結：\n\n ${resetUrl}`;
+
+  try {
+    await sendEmail({ email: user.email, subject: "密碼重設請求", message });
+    res.status(200).json({ message: "重設連結已寄至您的信箱" });
+  } catch (err) {
+    user.resetPasswordToken = null;
+    user.resetPasswordExpires = null;
+    await user.save();
+    res.status(500).json({ message: "郵件發送失敗" });
+  }
 };

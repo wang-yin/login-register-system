@@ -9,6 +9,7 @@ import {
 import passport from "passport";
 import { oauthSuccess } from "../controllers/oauth_controller";
 import { protect } from "../middleware/auth_middleware";
+import { forgotPassword } from "../controllers/auth_controller";
 
 const router = Router();
 
@@ -58,4 +59,8 @@ router.put("/change-password", protect, changePassword);
 
 //登出
 router.post("/logout", logout);
+
+//忘記密碼
+router.post("/forgot-password", forgotPassword);
+
 export default router;
