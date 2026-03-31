@@ -1,0 +1,15 @@
+# 忽略所有層級的 node_modules
+node_modules/
+
+# 前端 Next.js 產出
+frontend/.next/
+frontend/out/
+
+# 後端編譯產出
+backend/dist/
+backend/build/
+
+# 環境變數與日誌
+.env
+*.log
+.DS_Store
