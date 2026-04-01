@@ -2,20 +2,24 @@ services:
   frontend:
     build: ./frontend
     ports:
-      - "3000:3000"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:5000
+      - '3000:3000'
 
   backend:
     build: ./backend
     ports:
-      - "5000:5000"
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
+      - '5000:5000'
     environment:
-      - PORT=5000
-      - NODE_ENV=development
+      # 在 Docker 內部，主機名稱就是服務名稱 "mongodb"
+      - MONGO_URI=mongodb://mongodb:27017/login-system
+    depends_on:
+      - mongodb # 確保資料庫先啟動，後端再啟動
+
+  mongodb:
+    image: mongo:latest
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  mongo-data:
