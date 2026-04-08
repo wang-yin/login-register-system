@@ -1,6 +1,6 @@
 import User from '../models/schema/UserSchema';
 import { hashPassword, verifyPassword } from '../utils/bcrypt';
-import { RegisterDTO, LoginDTO } from '../type/auth';
+import { RegisterDTO, LoginDTO, UpdatePasswordDTO } from '../types/auth';
 
 export const authService = {
   register: async (data: RegisterDTO) => {
@@ -47,6 +47,31 @@ export const authService = {
     if (!user) {
       throw new Error('USER_NOT_FOUND');
     }
+    return user;
+  },
+
+  updatePassword: async (userId: string, data: UpdatePasswordDTO) => {
+    // 查找使用者
+    const user = await User.findById(userId).select('+password');
+    if (!user || !user.password) throw new Error('USER_NOT_FOUND');
+
+    // 驗證舊密碼
+    const isCorrect = await verifyPassword(
+      String(data.currentPassword),
+      user.password,
+    );
+    if (!isCorrect) throw new Error('CURRENT_PASSWORD_INVALID');
+
+    // 檢查新密碼是否與舊的一樣
+    if (data.currentPassword === data.newPassword) {
+      throw new Error('NEW_PASSWORD_MUST_BE_DIFFERENT');
+    }
+
+    // 加密並更新
+    const hashedPassword = await hashPassword(data.newPassword);
+    user.password = hashedPassword;
+    await user.save();
+
     return user;
   },
 };

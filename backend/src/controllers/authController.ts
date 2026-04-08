@@ -1,3 +1,4 @@
+/// <reference path="../types/express.d.ts" />
 import { Request, Response } from 'express';
 import { authService } from '../services/authService';
 import { generateToken } from '../utils/jwt_utils';
@@ -78,6 +79,45 @@ export const profile = async (req: Request, res: Response) => {
     return res.status(404).json({
       status: 'fail',
       message: error.message || '無法取得使用者資料',
+    });
+  }
+};
+
+// change-password
+export const updatePassword = async (req: Request, res: Response) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        status: 'fail',
+        message: '請提供舊密碼與新密碼',
+      });
+    }
+
+    await authService.updatePassword(req.user!.id, {
+      currentPassword,
+      newPassword,
+    });
+    return res.status(200).json({
+      status: 'success',
+      message: '密碼更新成功',
+    });
+  } catch (error: any) {
+    // 4. 錯誤處理：根據 Service 丟出的 Error 訊息回傳對應狀態
+    let statusCode = 400;
+    let message = error.message || '更新密碼失敗';
+
+    if (error.message === 'CURRENT_PASSWORD_INVALID') {
+      message = '舊密碼輸入錯誤';
+    } else if (error.message === 'USER_NOT_FOUND') {
+      statusCode = 404;
+      message = '找不到該使用者';
+    }
+
+    return res.status(statusCode).json({
+      status: 'fail',
+      message,
     });
   }
 };
