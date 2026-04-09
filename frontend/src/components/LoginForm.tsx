@@ -36,9 +36,14 @@ export default function LoginForm({ setView }: AuthFormProps) {
     const rememberMe = formData.get('remember') === 'on';
 
     try {
-      await apiClient.post('/auth/login', Object.fromEntries(formData));
-      alert('登入成功！');
-      window.location.reload();
+      const res = await apiClient.post(
+        '/auth/login',
+        Object.fromEntries(formData),
+      );
+      if (res.status === 200) {
+        alert('登入成功！');
+        router.push('/auth/dashboard');
+      }
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || 'LOGIN_FAILED';
       alert(errorMessage);

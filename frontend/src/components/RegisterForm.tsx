@@ -15,8 +15,13 @@ export default function RegisterForm() {
     formData.get('password');
     setIsLoading(true);
     try {
-      await apiClient.post('/auth/register', Object.fromEntries(formData));
-      alert('註冊成功!');
+      const res = await apiClient.post(
+        '/auth/register',
+        Object.fromEntries(formData),
+      );
+      if (res.status === 200) {
+        alert('註冊成功!');
+      }
     } catch (error: any) {
       const message = error.response?.data?.message || '註冊失敗';
       alert(message);
