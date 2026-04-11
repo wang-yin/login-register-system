@@ -1,15 +1,15 @@
-import { Document } from 'mongoose'
-
-export interface IUser extends Document {
-  name: string
-  email: string
-  password?: string
-  providers?: IProvider[]
-  resetPasswordToken: string | null
-  resetPasswordExpires: Date | null
-}
+import { Document } from 'mongoose';
 
 interface IProvider {
-  providers: 'google' | 'github'
-  providerId: string
+  provider: 'google' | 'github';
+  providerId: string;
+}
+
+export interface IUser extends Document {
+  name: string;
+  email: string;
+  password?: string;
+  providers?: IProvider[];
+  resetPasswordToken?: string | null;
+  resetPasswordExpires?: Date | null;
 }

@@ -4,10 +4,14 @@ import cors from 'cors';
 import 'dotenv/config';
 import { connectDB } from './config/connection_db';
 import authRoutes from './routes/authRoute';
+import passport from 'passport';
+import './config/passport';
 
 const PORT = process.env.PORT || 5000;
 
 const app = express();
+
+app.use(passport.initialize());
 
 app.use(cookieParser());
 
