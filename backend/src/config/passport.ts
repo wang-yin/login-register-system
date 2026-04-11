@@ -50,3 +50,57 @@ passport.use(
     },
   ),
 );
+
+passport.use(
+  new GitHubStrategy(
+    {
+      clientID: process.env.GITHUB_CLIENT_ID!,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+      callbackURL: process.env.GITHUB_CALLBACK_URL!,
+      scope: ['user:email'],
+    },
+    async (
+      accessToken: string,
+      refreshToken: string,
+      profile: any,
+      done: any,
+    ) => {
+      try {
+        const name = profile.displayName || profile.username || 'GitHub User';
+        const email = profile.emails?.[0].value;
+        const githubId = profile.id;
+        if (!email) {
+          return done(new Error('GitHub 帳號未公開 Email，無法登入'), null);
+        }
+
+        let user = await User.findOne({ email });
+        if (!user) {
+          user = await User.create({
+            name: name,
+            email,
+            providers: [
+              {
+                provider: 'github',
+                providerId: githubId,
+              },
+            ],
+          });
+        } else {
+          const hasThisGithubAccount = user.providers?.some(
+            (p) => p.provider === 'github' && p.providerId === githubId,
+          );
+          if (!hasThisGithubAccount) {
+            user.providers?.push({
+              provider: 'github',
+              providerId: githubId,
+            });
+            await user.save();
+          }
+        }
+        return done(null, user);
+      } catch (err) {
+        return done(err, null);
+      }
+    },
+  ),
+);

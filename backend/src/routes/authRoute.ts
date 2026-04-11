@@ -32,6 +32,21 @@ router.get(
   oauthSuccess,
 );
 
+// github 登入入口
+router.get(
+  '/github',
+  passport.authenticate('github', { scope: ['user:email'] }),
+);
+
+router.get(
+  '/github/callback',
+  passport.authenticate('github', {
+    session: false,
+    failureRedirect: '/api/auth/login-failed',
+  }),
+  oauthSuccess,
+);
+
 //登入失敗
 router.get('/login-failed', (req, res) => {
   res.status(401).json({ message: 'OAuth 驗證失敗' });
