@@ -88,10 +88,10 @@ export const updatePassword = async (req: Request, res: Response) => {
   try {
     const { currentPassword, newPassword } = req.body;
 
-    if (!currentPassword || !newPassword) {
+    if (!newPassword) {
       return res.status(400).json({
         status: 'fail',
-        message: '請提供舊密碼與新密碼',
+        message: '請提供新密碼',
       });
     }
 
@@ -108,16 +108,46 @@ export const updatePassword = async (req: Request, res: Response) => {
     let statusCode = 400;
     let message = error.message || '更新密碼失敗';
 
-    if (error.message === 'CURRENT_PASSWORD_INVALID') {
-      message = '舊密碼輸入錯誤';
-    } else if (error.message === 'USER_NOT_FOUND') {
-      statusCode = 404;
-      message = '找不到該使用者';
+    switch (error.message) {
+      case 'CURRENT_PASSWORD_INVALID':
+        message = '舊密碼輸入錯誤';
+        break;
+      case 'CURRENT_PASSWORD_REQUIRED':
+        message = '此帳號需輸入舊密碼才能修改';
+        break;
+      case 'NEW_PASSWORD_MUST_BE_DIFFERENT':
+        message = '新密碼不能與舊密碼相同';
+        break;
+      case 'USER_NOT_FOUND':
+        statusCode = 404;
+        message = '找不到該使用者';
+        break;
     }
 
     return res.status(statusCode).json({
       status: 'fail',
       message,
+    });
+  }
+};
+
+export const getMe = async (req: Request, res: Response) => {
+  try {
+    const user = await authService.getMe(req.user!.id);
+    res.status(200).json({
+      status: 'success',
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        providers: user.providers,
+        hasPassword: !!user.password,
+      },
+    });
+  } catch (error: any) {
+    res.status(404).json({
+      status: 'fail',
+      message: error.message || '找不到使用者',
     });
   }
 };

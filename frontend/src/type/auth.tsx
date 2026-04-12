@@ -12,3 +12,11 @@ export interface AuthConfigItem {
 export interface AuthFormProps {
   setView: (view: AuthView) => void;
 }
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  hasPassword: boolean;
+  providers: { provider: string; providerId: string }[];
+}

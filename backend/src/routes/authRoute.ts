@@ -5,6 +5,7 @@ import {
   getRememberedEmail,
   profile,
   updatePassword,
+  getMe,
 } from '../controllers/authController';
 import { protect } from '../middlewares/authMiddleware';
 import passport from 'passport';
@@ -47,9 +48,12 @@ router.get(
   oauthSuccess,
 );
 
-//登入失敗
+// 登入失敗
 router.get('/login-failed', (req, res) => {
   res.status(401).json({ message: 'OAuth 驗證失敗' });
 });
+
+// 取得使用者資料
+router.get('/getMe', protect, getMe);
 
 export default router;

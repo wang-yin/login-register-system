@@ -53,24 +53,38 @@ export const authService = {
   updatePassword: async (userId: string, data: UpdatePasswordDTO) => {
     // 查找使用者
     const user = await User.findById(userId).select('+password');
-    if (!user || !user.password) throw new Error('USER_NOT_FOUND');
+    if (!user) throw new Error('USER_NOT_FOUND');
 
-    // 驗證舊密碼
-    const isCorrect = await verifyPassword(
-      String(data.currentPassword),
-      user.password,
-    );
-    if (!isCorrect) throw new Error('CURRENT_PASSWORD_INVALID');
+    // 如果使用者「已經有密碼」，才需要驗證舊密碼
+    if (user.password) {
+      if (!data.currentPassword) {
+        throw new Error('CURRENT_PASSWORD_REQUIRED');
+      }
 
-    // 檢查新密碼是否與舊的一樣
-    if (data.currentPassword === data.newPassword) {
-      throw new Error('NEW_PASSWORD_MUST_BE_DIFFERENT');
+      // 驗證舊密碼
+      const isCorrect = await verifyPassword(
+        String(data.currentPassword),
+        user.password,
+      );
+      if (!isCorrect) throw new Error('CURRENT_PASSWORD_INVALID');
+
+      // 檢查新密碼是否與舊的一樣
+      if (data.currentPassword === data.newPassword) {
+        throw new Error('NEW_PASSWORD_MUST_BE_DIFFERENT');
+      }
     }
 
     // 加密並更新
     const hashedPassword = await hashPassword(data.newPassword);
     user.password = hashedPassword;
     await user.save();
+
+    return user;
+  },
+
+  getMe: async (userId: string) => {
+    const user = await User.findById(userId).select('+password');
+    if (!user) throw new Error('USER_NOT_FOUND');
 
     return user;
   },
