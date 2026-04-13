@@ -1,6 +1,7 @@
 import User from '../models/schema/UserSchema';
 import { hashPassword, verifyPassword } from '../utils/bcrypt';
 import { RegisterDTO, LoginDTO, UpdatePasswordDTO } from '../types/auth';
+import crypto from 'crypto';
 
 export const authService = {
   register: async (data: RegisterDTO) => {
@@ -87,5 +88,40 @@ export const authService = {
     if (!user) throw new Error('USER_NOT_FOUND');
 
     return user;
+  },
+
+  forgotPassword: async (email: string) => {
+    const user = await User.findOne({ email });
+    if (!user) throw new Error('EMAIL_NOT_FOUND');
+
+    // 產生隨機 Token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+
+    // 加密 Token 存入資料庫
+    user.resetPasswordToken = crypto
+      .createHash('sha256')
+      .update(resetToken)
+      .digest('hex');
+
+    // 設定過期時間
+    user.resetPasswordExpires = new Date(Date.now() + 3600000);
+
+    await user.save();
+
+    return resetToken;
+  },
+
+  // 寄信失敗把資料庫存的 Token 欄位清空
+  clearResetToken: async (email: string) => {
+    await User.updateOne(
+      { email },
+      {
+        // $unset 是 MongoDB 的指令，用來徹底移除該欄位
+        $unset: {
+          resetPasswordToken: 1,
+          resetPasswordExpires: 1,
+        },
+      },
+    );
   },
 };

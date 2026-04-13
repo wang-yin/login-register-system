@@ -1,7 +1,7 @@
+import 'dotenv/config';
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
-import 'dotenv/config';
 import { connectDB } from './config/connection_db';
 import authRoutes from './routes/authRoute';
 import passport from 'passport';

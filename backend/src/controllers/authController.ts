@@ -2,6 +2,7 @@
 import { Request, Response } from 'express';
 import { authService } from '../services/authService';
 import { generateToken } from '../utils/jwt_utils';
+import { sendEmail } from '../utils/email_servuce';
 
 // register
 export const register = async (req: Request, res: Response) => {
@@ -148,6 +149,53 @@ export const getMe = async (req: Request, res: Response) => {
     res.status(404).json({
       status: 'fail',
       message: error.message || '找不到使用者',
+    });
+  }
+};
+
+export const forgotPassword = async (req: Request, res: Response) => {
+  const { email } = req.body;
+  try {
+    const resetToken = await authService.forgotPassword(email);
+
+    const resetUrl = `${process.env.FRONTEND_URL}/auth/reset-password/${resetToken}`;
+    const message = `
+      <h1>您請求了密碼重設</h1>
+      <p>請點擊下方的連結來重設您的密碼：</p>
+      <a href="${resetUrl}" clicktracking=off>${resetUrl}</a>
+      <p>這條連結將在 1 小時後失效。</p>
+      <p>如果您沒有要求重設密碼，請忽略此郵件。</p>
+    `;
+
+    try {
+      await sendEmail({
+        email: email,
+        subject: '密碼重設連結',
+        html: message,
+      });
+      res.status(200).json({
+        status: 'success',
+        message: '重設連結已寄送到您的電子信箱',
+      });
+    } catch (err) {
+      await authService.clearResetToken(email);
+      console.error('Email 寄送失敗:', err);
+      return res.status(500).json({
+        status: 'error',
+        message: '郵件發送失敗，請稍後再試',
+      });
+    }
+  } catch (error: any) {
+    let statusCode = 400;
+    let message = error.message;
+
+    if (error.message === 'EMAIL_NOT_FOUND') {
+      message = '找不到使用該 Email 的帳號';
+    }
+
+    res.status(statusCode).json({
+      status: 'fail',
+      message,
     });
   }
 };

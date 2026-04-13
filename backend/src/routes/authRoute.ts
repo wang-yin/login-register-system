@@ -6,6 +6,7 @@ import {
   profile,
   updatePassword,
   getMe,
+  forgotPassword,
 } from '../controllers/authController';
 import { protect } from '../middlewares/authMiddleware';
 import passport from 'passport';
@@ -55,5 +56,8 @@ router.get('/login-failed', (req, res) => {
 
 // 取得使用者資料
 router.get('/getMe', protect, getMe);
+
+// 忘記密碼
+router.post('/forgot-password', forgotPassword);
 
 export default router;
