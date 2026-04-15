@@ -124,4 +124,23 @@ export const authService = {
       },
     );
   },
+
+  resetPassword: async (token: string, newPassword: string) => {
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+    const user = await User.findOne({
+      resetPasswordToken: hashedToken,
+      resetPasswordExpires: { $gt: new Date() },
+    });
+    if (!user) throw new Error('TOKEN_INVALID_OR_EXPIRED');
+
+    const hashedPassword = await hashPassword(newPassword);
+    user.password = hashedPassword;
+
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+
+    await user.save();
+    return user;
+  },
 };

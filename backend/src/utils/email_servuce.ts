@@ -12,8 +12,6 @@ export const sendEmail = async (options: {
       pass: process.env.EMAIL_PASS,
     },
   });
-  console.log('帳號:', process.env.EMAIL_USER);
-  console.log('密碼存在嗎:', !!process.env.EMAIL_PASS);
 
   const mailOptions = {
     from: `Login System <${process.env.EMAIL_USER}>`,

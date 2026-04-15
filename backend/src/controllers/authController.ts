@@ -199,3 +199,33 @@ export const forgotPassword = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const resetPassword = async (req: Request, res: Response) => {
+  try {
+    const { token, password } = req.body;
+
+    if (!token || !password) {
+      return res.status(400).json({
+        status: 'fail',
+        message: '請提供有效的重設憑證與新密碼',
+      });
+    }
+    await authService.resetPassword(token, password);
+    res.status(200).json({
+      status: 'success',
+      message: '密碼重設成功，請使用新密碼登入',
+    });
+  } catch (error: any) {
+    let message = '密碼重設失敗';
+    let statusCode = 400;
+
+    if (error.message === 'TOKEN_INVALID_OR_EXPIRED') {
+      message = '重設連結已失效或 Token 錯誤，請重新申請';
+    }
+
+    res.status(statusCode).json({
+      status: 'fail',
+      message,
+    });
+  }
+};

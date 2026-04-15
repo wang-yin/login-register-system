@@ -7,6 +7,7 @@ import {
   updatePassword,
   getMe,
   forgotPassword,
+  resetPassword,
 } from '../controllers/authController';
 import { protect } from '../middlewares/authMiddleware';
 import passport from 'passport';
@@ -59,5 +60,7 @@ router.get('/getMe', protect, getMe);
 
 // 忘記密碼
 router.post('/forgot-password', forgotPassword);
+
+router.post('/reset-password', resetPassword);
 
 export default router;
