@@ -5,8 +5,9 @@ import { MdOutlineAccountCircle } from 'react-icons/md';
 import { MdOutlineEmail } from 'react-icons/md';
 import { TbLockPassword } from 'react-icons/tb';
 import apiClient from '@/api/axios';
+import { AuthFormProps } from '@/type/auth';
 
-export default function RegisterForm() {
+export default function RegisterForm({ setView }: AuthFormProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (formData: FormData) => {
@@ -19,9 +20,8 @@ export default function RegisterForm() {
         '/auth/register',
         Object.fromEntries(formData),
       );
-      if (res.status === 200) {
-        alert('註冊成功!');
-      }
+      alert('註冊成功!');
+      setView('login');
     } catch (error: any) {
       const message = error.response?.data?.message || '註冊失敗';
       alert(message);
