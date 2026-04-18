@@ -229,3 +229,18 @@ export const resetPassword = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const logout = async (req: Request, res: Response) => {
+  res.cookie('auth_token', '', {
+    httpOnly: true,
+    expires: new Date(0), // 設定為過去的時間，瀏覽器會立即刪除它
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/', // 確保路徑一致
+  });
+
+  res.status(200).json({
+    status: 'success',
+    message: '已成功登出',
+  });
+};

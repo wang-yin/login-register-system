@@ -11,6 +11,17 @@ export default function AuthSuccess() {
   const [userData, setUserData] = useState<User | null>(null);
   const router = useRouter();
 
+  const handleLogout = async () => {
+    try {
+      await apiClient.post('/auth/logout');
+      alert('您已成功登出');
+      window.location.href = '/';
+    } catch (error) {
+      console.error('登出失敗:', error);
+      alert('登出過程發生錯誤');
+    }
+  };
+
   useEffect(() => {
     const checkUser = async () => {
       try {
@@ -44,7 +55,12 @@ export default function AuthSuccess() {
           </div>
           <div className="group mt-10 flex cursor-pointer items-center justify-center rounded-2xl border-2 bg-white py-2 hover:bg-gray-100">
             <FiLogOut size={25} className="mr-2" />
-            <button className="group-hover:cursor-pointer">登出</button>
+            <button
+              className="group-hover:cursor-pointer"
+              onClick={handleLogout}
+            >
+              登出
+            </button>
           </div>
         </div>
       </div>

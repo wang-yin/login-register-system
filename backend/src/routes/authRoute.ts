@@ -8,6 +8,7 @@ import {
   getMe,
   forgotPassword,
   resetPassword,
+  logout,
 } from '../controllers/authController';
 import { protect } from '../middlewares/authMiddleware';
 import passport from 'passport';
@@ -19,6 +20,7 @@ router.post('/login', login);
 router.get('/remembered-email', getRememberedEmail);
 router.get('/profile', protect, profile);
 router.patch('/update-password', protect, updatePassword);
+router.post('/logout', logout);
 
 // google 登入入口
 router.get(
