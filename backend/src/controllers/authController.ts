@@ -29,7 +29,7 @@ export const login = async (req: Request, res: Response) => {
     res.cookie('auth_token', token, {
       httpOnly: true,
       secure: true,
-      sameSite: 'lax',
+      sameSite: 'none',
       maxAge: tokenExpiry,
       path: '/',
     });
@@ -39,7 +39,7 @@ export const login = async (req: Request, res: Response) => {
       res.cookie('remember_email', email, {
         httpOnly: true, // 核心：防止 JavaScript 讀取 (防 XSS)
         secure: true, // 開發環境先設為 false
-        sameSite: 'none', // 防止 CSRF 攻擊的平衡設定
+        sameSite: 'none',
         maxAge: sevenDays,
         path: '/',
       });
@@ -234,8 +234,8 @@ export const logout = async (req: Request, res: Response) => {
   res.cookie('auth_token', '', {
     httpOnly: true,
     expires: new Date(0), // 設定為過去的時間，瀏覽器會立即刪除它
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: true,
+    sameSite: 'none',
     path: '/', // 確保路徑一致
   });
 

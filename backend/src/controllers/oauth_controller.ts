@@ -13,8 +13,8 @@ export const oauthSuccess = async (req: Request, res: Response) => {
 
   res.cookie('auth_token', token, {
     httpOnly: true, // 核心安全設定：前端 JS 無法讀取
-    secure: false, // 開發環境 localhost 用 false，部署到 HTTPS 後改為 true
-    sameSite: 'lax', // 預防 CSRF 攻擊
+    secure: true, // 開發環境 localhost 用 false，部署到 HTTPS 後改為 true
+    sameSite: 'none',
     maxAge: 7 * 24 * 60 * 60 * 1000, // Cookie 有效期（例如 7 天）
   });
 
