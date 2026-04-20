@@ -17,7 +17,7 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: 'http://localhost:3000', // 這裡填寫你前端 Next.js 的網址（預設是 3000 或 3001）
+    origin: process.env.FRONTEND_URL,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization'], // 務必允許 Authorization 標頭
     credentials: true, // 如果未來要用到 Cookie 或 Passport Session 則必填
