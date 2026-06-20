@@ -1,6 +1,25 @@
 import mongoose from "mongoose";
 
-export const UserSchema = new mongoose.Schema(
+// 欄位型別，用在註冊
+interface IUser {
+  name: string;
+  email: string;
+  password: string;
+  providers: {
+    provider: "google" | "github";
+    providerId: string;
+    linkedAt: Date;
+  }[];
+  resetPasswordToken: string;
+  resetPasswordExpires: Date;
+}
+
+// 方法型別，用在登入
+interface IUserMethods {
+  comparePassword(candidatePassword: string): Promise<boolean>;
+}
+
+export const UserSchema = new mongoose.Schema<IUser, {}, IUserMethods>(
   {
     name: {
       type: String,

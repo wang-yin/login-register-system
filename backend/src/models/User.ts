@@ -16,5 +16,19 @@ UserSchema.pre("save", async function () {
   user.password = await bcrypt.hash(user.password, saltRounds);
 });
 
+// 登入時的「解密/比對」邏輯
+UserSchema.methods.comparePassword = async function (
+  candidatePassword: string,
+): Promise<boolean> {
+  const user = this;
+
+  // 如果是純 OAuth 註冊的人，資料庫不會有 password
+  if (!user.password) {
+    return false;
+  }
+
+  return await bcrypt.compare(candidatePassword, user.password);
+};
+
 const User = mongoose.model("User", UserSchema);
 export default User;
