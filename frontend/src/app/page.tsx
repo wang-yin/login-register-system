@@ -1,6 +1,13 @@
+"use client";
+
 import LoginForm from "@/components/form/LoginForm";
+import RegisterForm from "@/components/form/RegisterForm";
+import { useState } from "react";
+
+type view = "login" | "register" | "forgot";
 
 export default function Home() {
+  const [view, setView] = useState<view>("login");
   return (
     <div className="flex-col w-full max-w-md">
       <div className="text-center mb-8">
@@ -11,15 +18,33 @@ export default function Home() {
       {/* card */}
       <div className="bg-card border border-border rounded-2xl p-8 shadow-[0_25px_50px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.05)]">
         {/* switcher */}
-        <div className="flex bg-muted rounded-lg p-1 mb-6">
-          <button className="flex-1 py-2 rounded-md text-sm transition-all duration-200 bg-card text-foreground shadow-sm">
-            登入
-          </button>
-          <button className="flex-1 py-2 rounded-md text-sm transition-all duration-200 text-muted-foreground hover:text-foreground">
-            註冊
-          </button>
-        </div>
-        <LoginForm />
+        {view !== "forgot" && (
+          <div className="flex bg-muted rounded-lg p-1 mb-6">
+            <button
+              className={`flex-1 py-2 rounded-md text-sm transition-all duration-200 text-foreground ${
+                view === "login"
+                  ? "bg-card text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              onClick={() => setView("login")}
+            >
+              登入
+            </button>
+            <button
+              className={`flex-1 py-2 rounded-md text-sm transition-all duration-200 ${
+                view === "register"
+                  ? "bg-card text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              onClick={() => setView("register")}
+            >
+              註冊
+            </button>
+          </div>
+        )}
+
+        {view === "login" && <LoginForm />}
+        {view === "register" && <RegisterForm />}
       </div>
     </div>
   );
