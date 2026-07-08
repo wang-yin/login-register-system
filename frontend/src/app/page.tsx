@@ -2,6 +2,7 @@
 
 import LoginForm from "@/components/form/LoginForm";
 import RegisterForm from "@/components/form/RegisterForm";
+import ForgotPasswordForm from "@/components/form/ForgotPassword";
 import { useState } from "react";
 
 type view = "login" | "register" | "forgot";
@@ -43,8 +44,9 @@ export default function Home() {
           </div>
         )}
 
-        {view === "login" && <LoginForm />}
-        {view === "register" && <RegisterForm />}
+        {view === "login" && <LoginForm onSwitch={setView} />}
+        {view === "register" && <RegisterForm onSwitch={setView} />}
+        {view === "forgot" && <ForgotPasswordForm onSwitch={setView} />}
       </div>
     </div>
   );

@@ -3,13 +3,35 @@
 import { useState } from "react";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import OAuthButtons from "../buttons/OAuthButtons";
+import Spinner from "../common/Spinner";
 
-export default function LoginForm() {
+interface LoginFormProps {
+  onSwitch: (view: "register" | "forgot") => void;
+}
+
+export default function LoginForm({ onSwitch }: LoginFormProps) {
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError("");
+    if (!email || !password) {
+      setError("請填寫所有欄位");
+      return;
+    }
+    setLoading(true);
+
+    // API
+
+    setLoading(false);
+  };
   return (
-    <form className="space-y-5">
+    <form className="space-y-5" onSubmit={handleSubmit}>
       <div className="space-y-1">
         <label htmlFor="login-email" className="text-sm text-muted-foreground">
           電子郵件
@@ -17,6 +39,8 @@ export default function LoginForm() {
         <input
           id="login-email"
           type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           className="w-full px-4 py-3 rounded-lg bg-muted border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
           placeholder="you@example.com"
           autoComplete="email"
@@ -33,6 +57,8 @@ export default function LoginForm() {
           <input
             id="login-password"
             type={showPassword ? "text" : "password"}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             className="w-full px-4 py-3 rounded-lg bg-muted border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
             placeholder="輸入密碼"
             autoComplete="current-password"
@@ -72,7 +98,11 @@ export default function LoginForm() {
           </div>
           <span className="text-sm text-muted-foreground">記住我</span>
         </label>
-        <button className="text-sm text-primary hover:underline">
+        <button
+          type="button"
+          className="text-sm text-primary hover:underline"
+          onClick={() => onSwitch("forgot")}
+        >
           忘記密碼?
         </button>
       </div>
@@ -83,9 +113,10 @@ export default function LoginForm() {
       )}
       <button
         type="submit"
+        disabled={loading}
         className="w-full py-3 bg-primary rounded-lg hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
       >
-        登入
+        {loading ? <Spinner /> : "登入"}
       </button>
 
       <OAuthButtons />
@@ -95,6 +126,7 @@ export default function LoginForm() {
         <button
           type="button"
           className="text-primary hover:underline text-base"
+          onClick={() => onSwitch("register")}
         >
           立即註冊
         </button>
@@ -116,22 +148,6 @@ function CheckIcon() {
       strokeLinejoin="round"
     >
       <polyline points="20 6 9 17 4 12" />
-    </svg>
-  );
-}
-
-function Spinner() {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      className="animate-spin"
-    >
-      <path d="M21 12a9 9 0 11-6.219-8.56" />
     </svg>
   );
 }
