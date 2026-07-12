@@ -4,13 +4,14 @@ import mongoose from "mongoose";
 interface IUser {
   name: string;
   email: string;
-  password: string;
+  password?: string;
+  isEmailVerified: boolean;
   providers: {
     provider: "google" | "github";
     providerId: string;
     linkedAt: Date;
   }[];
-  resetPasswordToken: string;
+  resetPasswordToken?: string;
   resetPasswordExpires: Date;
 }
 
@@ -29,10 +30,16 @@ export const UserSchema = new mongoose.Schema<IUser, {}, IUserMethods>(
       type: String,
       required: true,
       unique: true,
+      trim: true,
+      lowercase: true,
     },
     password: {
       type: String,
       required: false,
+    },
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
     },
     providers: [
       {

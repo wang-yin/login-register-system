@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import OAuthButtons from "../buttons/OAuthButtons";
 import Spinner from "../common/Spinner";
+import api from "@/lib/api";
 
 interface LoginFormProps {
   onSwitch: (view: "register" | "forgot") => void;
@@ -17,6 +19,8 @@ export default function LoginForm({ onSwitch }: LoginFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const router = useRouter();
+
   const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
@@ -26,10 +30,24 @@ export default function LoginForm({ onSwitch }: LoginFormProps) {
     }
     setLoading(true);
 
-    // API
+    try {
+      const response = await api.post("/auth/login", {
+        email,
+        password,
+        rememberMe,
+      });
 
-    setLoading(false);
+      if (response.status === 200) {
+        const userName = response.data.user.name;
+        router.push(`/dashboard?name=${encodeURIComponent(userName)}`);
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.message || "登入失敗，請稍後再試");
+    } finally {
+      setLoading(false);
+    }
   };
+
   return (
     <form className="space-y-5" onSubmit={handleSubmit}>
       <div className="space-y-1">
@@ -132,22 +150,5 @@ export default function LoginForm({ onSwitch }: LoginFormProps) {
         </button>
       </p>
     </form>
-  );
-}
-
-function CheckIcon() {
-  return (
-    <svg
-      width="32"
-      height="32"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="#22c55e"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <polyline points="20 6 9 17 4 12" />
-    </svg>
   );
 }

@@ -12,7 +12,6 @@ services:
     depends_on:
       - mongodb
 
-  # 2. 前端服務
   frontend:
     build: ./frontend
     ports:
@@ -20,6 +19,7 @@ services:
     volumes:
       - ./frontend:/usr/src/app
       - /usr/src/app/node_modules
+      - /usr/src/app/.next
     environment:
       - NODE_ENV=development
 

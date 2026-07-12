@@ -4,6 +4,8 @@ import { useState } from "react";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import OAuthButtons from "../buttons/OAuthButtons";
 import Spinner from "../common/Spinner";
+import CheckIcon from "../icon/CheckIcon";
+import api from "@/lib/api";
 
 interface RegisterFormProps {
   onSwitch: (view: "login") => void;
@@ -17,6 +19,7 @@ export default function RegisterForm({ onSwitch }: RegisterFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
+  const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -32,9 +35,41 @@ export default function RegisterForm({ onSwitch }: RegisterFormProps) {
     setLoading(true);
 
     // API
+    try {
+      const response = await api.post("/auth/register", {
+        name,
+        email,
+        password,
+      });
 
-    setLoading(false);
+      if (response.status === 201) {
+        setSuccess(true);
+      }
+    } catch (err: any) {
+      // 🛡️ 精確攔截後端的「該電子郵件已被註冊」等錯誤訊息
+      setError(err.response?.data?.message || "註冊失敗，請稍後再試");
+    } finally {
+      setLoading(false);
+    }
   };
+
+  if (success) {
+    return (
+      <div className="text-center space-y-4 py-8">
+        <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center mx-auto">
+          <CheckIcon />
+        </div>
+        <h2>註冊成功！</h2>
+
+        <button
+          onClick={() => onSwitch("login")}
+          className="w-full py-3 rounded-lg bg-primary hover:bg-primary/90 transition-all duration-200 mt-4"
+        >
+          前往登入
+        </button>
+      </div>
+    );
+  }
   return (
     <form className="space-y-4" onSubmit={handleSubmit}>
       <div className="space-y-1">
@@ -115,7 +150,7 @@ export default function RegisterForm({ onSwitch }: RegisterFormProps) {
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2"
+        className="w-full py-3 rounded-lg bg-primary hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2"
       >
         {loading ? <Spinner /> : "建立帳號"}
       </button>
