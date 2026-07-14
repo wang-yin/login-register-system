@@ -3,6 +3,7 @@ import User from "../models/User";
 import jwt from "jsonwebtoken";
 import axios from "axios";
 import { AuthenticatedRequest } from "../middlewares/authMiddleware";
+import nodemailer from "nodemailer";
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -346,5 +347,140 @@ export const updateProfileOrPassword = async (
   } catch (error: any) {
     console.error("更新帳號資料失敗:", error);
     res.status(500).json({ message: "伺服器內部錯誤，請稍後再試" });
+  }
+};
+
+// Nodemailer
+const JWT_SECRET = (process.env.JWT_SECRET || "YOUR_JWT_SECRET_KEY") as string;
+
+// 1. 初始化 Nodemailer 發信傳輸器
+const transporter = nodemailer.createTransport({
+  host: process.env.EMAIL_HOST,
+  port: parseInt(process.env.EMAIL_PORT || "587"),
+  secure: process.env.EMAIL_PORT === "465",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+} as nodemailer.TransportOptions);
+
+// ➡️ 1. 發送驗證信 API
+export const sendVerificationEmail = async (
+  req: AuthenticatedRequest,
+  res: Response,
+): Promise<void> => {
+  try {
+    const currentUserId = req.userId;
+
+    const user = await User.findById(currentUserId);
+    if (!user) {
+      res.status(404).json({ message: "找不到該用戶" });
+      return;
+    }
+
+    if (user.isEmailVerified) {
+      res.status(400).json({ message: "該電子信箱已驗證過，無需重複驗證" });
+      return;
+    }
+
+    // 產生一個專門用來驗證信箱的短效期 Token（設定 15 分鐘過期）
+    const verificationToken = jwt.sign(
+      { userId: user._id, type: "email-verification" },
+      JWT_SECRET,
+      { expiresIn: "15m" },
+    );
+
+    // 拼接前端的驗證接收頁面網址
+    const verificationLink = `${process.env.FRONTEND_URL}/auth/verify-email?token=${verificationToken}`;
+
+    // 2. 配置郵件內容
+    const mailOptions = {
+      from: `"AuthSystem" <${process.env.EMAIL_USER}>`, // 發件人
+      to: user.email, // 收件人
+      subject: "【驗證通知】請驗證您的電子郵件地址",
+      html: `
+        <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px;">
+          <h2 style="color: #1e3a8a;">感謝您註冊！請驗證您的電子信箱</h2>
+          <p>您好，${user.name}：</p>
+          <p>請點擊下方按鈕以啟用您的帳號，該連結將於 15 分鐘後過期：</p>
+          <div style="text-align: center; margin: 25px 0;">
+            <a href="${verificationLink}" style="display: inline-block; background-color: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.5);">
+              驗證電子信箱
+            </a>
+          </div>
+          <p style="color: #6b7280; font-size: 12px; line-height: 1.5;">如果按鈕無法點擊，請複製此網址至瀏覽器：<br/>
+          <a href="${verificationLink}" style="color: #3b82f6;">${verificationLink}</a></p>
+        </div>
+      `,
+    };
+
+    // 3. 執行發信
+    await transporter.sendMail(mailOptions);
+
+    res.status(200).json({ message: "驗證信已成功發送，請至信箱查收" });
+  } catch (error: any) {
+    console.error("Nodemailer 發送驗證信失敗:", error);
+    res.status(500).json({ message: "發送郵件失敗，請稍後再試" });
+  }
+};
+
+// ➡️ 2. 驗證 Token 並開通帳號 API
+export const verifyEmail = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { token } = req.body;
+
+    if (!token) {
+      res.status(400).json({ message: "缺少驗證憑證 (Token)" });
+      return;
+    }
+
+    // 解碼驗證 Token
+    let decoded: any;
+    try {
+      decoded = jwt.verify(token, JWT_SECRET);
+    } catch (err: any) {
+      if (err.name === "TokenExpiredError") {
+        res
+          .status(400)
+          .json({ message: "驗證連結已過期，請重新申請發送驗證信" });
+        return;
+      }
+      res.status(400).json({ message: "無效或損毀的驗證連結" });
+      return;
+    }
+
+    if (decoded.type !== "email-verification") {
+      res.status(400).json({ message: "無效的驗證類型" });
+      return;
+    }
+
+    // 尋找用戶並將狀態更新為 true
+    const user = await User.findById(decoded.userId);
+    if (!user) {
+      res.status(404).json({ message: "找不到對應的用戶" });
+      return;
+    }
+
+    if (user.isEmailVerified) {
+      res.status(200).json({ message: "信箱先前已驗證成功！" });
+      return;
+    }
+
+    user.isEmailVerified = true;
+    await user.save();
+
+    res.status(200).json({
+      message: "信箱驗證成功！帳號已全面開通",
+      user: {
+        name: user.name,
+        email: user.email,
+      },
+    });
+  } catch (error: any) {
+    console.error("驗證信箱發生錯誤:", error);
+    res.status(500).json({ message: "伺服器內部錯誤" });
   }
 };
