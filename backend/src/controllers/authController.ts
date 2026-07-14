@@ -42,7 +42,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email, password } = req.body;
+    const { email, password, rememberMe } = req.body;
 
     if (!email || !password) {
       res.status(400).json({ message: "電子郵件與密碼皆為必填" });
@@ -65,13 +65,17 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    const cookieMaxAge = rememberMe
+      ? 7 * 24 * 60 * 60 * 1000
+      : 1 * 24 * 60 * 60 * 1000;
+
     // 密碼正確，簽發 JWT Token
     const JWT_SECRET = process.env.JWT_SECRET as string;
     const token = jwt.sign(
       { userId: user._id, email: user.email },
       JWT_SECRET,
       {
-        expiresIn: "7d",
+        expiresIn: rememberMe ? "7d" : "1d",
       },
     );
 
@@ -80,7 +84,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       httpOnly: true,
       secure: false, // 只在 https 下傳輸（開發環境先關掉）
       sameSite: "lax", // 防禦 CSRF 攻擊
-      maxAge: 7 * 24 * 60 * 60 * 1000, // Cookie 有效期跟著 Token 走 (7天)
+      maxAge: cookieMaxAge, // Cookie 有效期跟著 Token 走 (7天)
     });
 
     res.status(200).json({
@@ -481,6 +485,149 @@ export const verifyEmail = async (
     });
   } catch (error: any) {
     console.error("驗證信箱發生錯誤:", error);
+    res.status(500).json({ message: "伺服器內部錯誤" });
+  }
+};
+
+// forgotPassword
+export const forgotPassword = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      res.status(400).json({ message: "請輸入電子信箱" });
+      return;
+    }
+    const user = await User.findOne({ email });
+    if (!user) {
+      res.status(200).json({ message: "若該信箱已註冊，重設密碼信件已發送" });
+      return;
+    }
+
+    const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // 存入資料庫，設定 15 分鐘過期
+    user.resetCode = resetCode;
+    user.resetCodeExpires = new Date(Date.now() + 15 * 60 * 1000);
+    await user.save();
+
+    // 發信
+    await transporter.sendMail({
+      from: `"AuthSystem" <${process.env.EMAIL_USER}>`,
+      to: user.email,
+      subject: "【安全驗證】您的密碼重設驗證碼",
+      html: `
+        <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px; background-color: #ffffff;">
+          <h2 style="color: #1e3a8a; margin-bottom: 10px;">重設您的帳號密碼</h2>
+          <p style="color: #374151; font-size: 14px;">您好：</p>
+          <p style="color: #374151; font-size: 14px; line-height: 1.5;">我們收到了您重設密碼的請求。請在網頁上輸入下方的 6 位數驗證碼：</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <span style="display: inline-block; background-color: #f3f4f6; color: #1e3a8a; font-size: 32px; font-weight: bold; letter-spacing: 6px; padding: 15px 30px; border-radius: 8px; border: 1px solid #e5e7eb;">
+              ${resetCode}
+            </span>
+          </div>
+          <p style="color: #ef4444; font-size: 12px; font-weight: bold;">該驗證碼將於 15 分鐘後失效。如果您並未要求重設密碼，請忽略此郵件。</p>
+        </div>
+      `,
+    });
+
+    res.status(200).json({ message: "若該信箱已註冊，重設密碼信件已發送" });
+  } catch (error) {
+    console.error("忘記密碼發信失敗:", error);
+    res.status(500).json({ message: "伺服器內部錯誤" });
+  }
+};
+
+export const verifyResetCode = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { email, code } = req.body;
+
+    if (!email || !code) {
+      res.status(400).json({ message: "請輸入電子信箱與驗證碼" });
+      return;
+    }
+
+    const user = await User.findOne({
+      email: email.toLowerCase(),
+      resetCode: code,
+      resetCodeExpires: { $gt: new Date() }, // 必須大於當前時間（未過期）
+    });
+
+    if (!user) {
+      res.status(400).json({ message: "驗證碼錯誤或已過期" });
+      return;
+    }
+
+    // 驗證成功，產生一個短效（10 分鐘）的 JWT 給前端，作為修改新密碼的「門票」
+    const resetToken = jwt.sign(
+      { userId: user._id, type: "reset-password" },
+      JWT_SECRET,
+      { expiresIn: "10m" },
+    );
+
+    // 清除資料庫中的驗證碼防止重複使用
+    user.resetCode = null;
+    user.resetCodeExpires = null;
+    await user.save();
+
+    res.status(200).json({
+      message: "驗證碼審核成功",
+      resetToken, // 👈 把這張門票交給前端
+    });
+  } catch (error) {
+    res.status(500).json({ message: "伺服器內部錯誤" });
+  }
+};
+
+export const resetPassword = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { token, password } = req.body;
+
+    if (!token || !password) {
+      res.status(400).json({ message: "缺少必要參數" });
+      return;
+    }
+
+    if (password.length < 8) {
+      res.status(400).json({ message: "新密碼至少需要 8 個字元" });
+      return;
+    }
+
+    // 驗證 Token
+    let decoded: any;
+    try {
+      decoded = jwt.verify(token, JWT_SECRET);
+    } catch (err: any) {
+      res.status(400).json({ message: "重設連結已過期或無效，請重新申請" });
+      return;
+    }
+
+    if (decoded.type !== "reset-password") {
+      res.status(400).json({ message: "無效的驗證類型" });
+      return;
+    }
+
+    const user = await User.findById(decoded.userId);
+    if (!user) {
+      res.status(404).json({ message: "找不到該用戶" });
+      return;
+    }
+
+    // 直接賦予新密碼，Mongoose pre("save") Hook 會自動幫我們做 bcrypt 雜湊加密
+    user.password = password;
+    await user.save();
+
+    res.status(200).json({ message: "密碼重設成功！請使用新密碼登入" });
+  } catch (error) {
+    console.error("重設密碼失敗:", error);
     res.status(500).json({ message: "伺服器內部錯誤" });
   }
 };

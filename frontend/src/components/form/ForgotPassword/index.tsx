@@ -19,6 +19,9 @@ export default function ForgotPasswordForm({
 }: ForgotPasswordFormProps) {
   const [step, setStep] = useState<Step>("email");
 
+  const [email, setEmail] = useState("");
+  const [resetToken, setResetToken] = useState("");
+
   return (
     <div>
       <div className="flex items-center gap-2 mb-6">
@@ -50,16 +53,26 @@ export default function ForgotPasswordForm({
         ))}
       </div>
 
-      {step === "email" && <EmailStep onSuccess={() => setStep("sent")} />}
+      {step === "email" && (
+        <EmailStep
+          email={email}
+          setEmail={setEmail}
+          onSuccess={() => setStep("sent")}
+        />
+      )}
 
       {step === "sent" && (
         <VerifyStep
+          email={email}
+          setResetToken={setResetToken}
           onSuccess={() => setStep("reset")}
           onBack={() => setStep("email")}
         />
       )}
 
-      {step === "reset" && <ResetStep onSuccess={() => setStep("done")} />}
+      {step === "reset" && (
+        <ResetStep resetToken={resetToken} onSuccess={() => setStep("done")} />
+      )}
 
       {step === "done" && <DoneStep onSwitch={onSwitch} />}
 

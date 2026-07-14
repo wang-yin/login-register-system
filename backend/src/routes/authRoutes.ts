@@ -8,6 +8,9 @@ import {
   updateProfileOrPassword,
   sendVerificationEmail,
   verifyEmail,
+  forgotPassword,
+  verifyResetCode,
+  resetPassword,
 } from "../controllers/authController";
 import { authMiddleware } from "../middlewares/authMiddleware";
 
@@ -21,5 +24,8 @@ router.get("/profile", authMiddleware, getCurrentUser);
 router.put("/update", authMiddleware, updateProfileOrPassword);
 router.post("/verify-email", verifyEmail);
 router.post("/send-verification", authMiddleware, sendVerificationEmail);
+router.post("/forgot-password", forgotPassword);
+router.post("/verify-reset-code", verifyResetCode);
+router.post("/reset-password", resetPassword);
 
 export default router;

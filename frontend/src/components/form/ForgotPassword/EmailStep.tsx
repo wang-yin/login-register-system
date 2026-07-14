@@ -2,13 +2,19 @@
 
 import React, { useState } from "react";
 import Spinner from "../../common/Spinner";
+import api from "@/lib/api";
 
 interface EmailStepProps {
+  email: string;
+  setEmail: (val: string) => void;
   onSuccess: () => void;
 }
 
-export default function EmailStep({ onSuccess }: EmailStepProps) {
-  const [email, setEmail] = useState("");
+export default function EmailStep({
+  email,
+  setEmail,
+  onSuccess,
+}: EmailStepProps) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -21,9 +27,14 @@ export default function EmailStep({ onSuccess }: EmailStepProps) {
     }
     setLoading(true);
 
-    // API
-
-    setLoading(false);
+    try {
+      await api.post("/auth/forgot-password", { email: email.trim() });
+      onSuccess(); // 前進到 "sent" (VerifyStep)
+    } catch (err: any) {
+      setError(err.response?.data?.message || "發送請求失敗，請稍後再試");
+    } finally {
+      setLoading(false);
+    }
     onSuccess();
   };
   return (

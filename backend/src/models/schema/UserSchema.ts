@@ -11,8 +11,8 @@ interface IUser {
     providerId: string;
     linkedAt: Date;
   }[];
-  resetPasswordToken?: string;
-  resetPasswordExpires: Date;
+  resetCode?: string | null;
+  resetCodeExpires?: Date | null;
 }
 
 // 方法型別，用在登入
@@ -58,12 +58,8 @@ export const UserSchema = new mongoose.Schema<IUser, {}, IUserMethods>(
         },
       },
     ],
-    resetPasswordToken: {
-      type: String,
-    },
-    resetPasswordExpires: {
-      type: Date,
-    },
+    resetCode: { type: String, default: null },
+    resetCodeExpires: { type: Date, default: null },
   },
   {
     timestamps: true,
