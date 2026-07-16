@@ -64,9 +64,6 @@ export default function OAuthCallbackPage() {
     return <ErrorStatus errorMsg={errorMsg} />;
   }
 
-  // ========================================================
-  // 🎨 根據不同的狀態渲染相對應的畫面
-  // ========================================================
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md p-8 bg-card border border-border rounded-xl shadow-md text-center space-y-6">
