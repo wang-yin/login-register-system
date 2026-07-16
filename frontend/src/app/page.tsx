@@ -9,11 +9,19 @@ type view = "login" | "register" | "forgot";
 
 export default function Home() {
   const [view, setView] = useState<view>("login");
+
+  const titles: Record<view, { heading: string; sub: string }> = {
+    login: { heading: "歡迎回來", sub: "登入您的帳號以繼續" },
+    register: { heading: "建立帳號", sub: "開始您的學習旅程" },
+    forgot: { heading: "重設密碼", sub: "透過電子郵件驗證來重設密碼" },
+  };
   return (
     <div className="flex-col w-full max-w-md">
       <div className="text-center mb-8">
-        <h1 className="text-foreground mb-1 text-2xl">歡迎回來</h1>
-        <p className="text-muted-foreground text-sm">登入您的帳號以繼續</p>
+        <h1 className="text-foreground mb-1 text-2xl">
+          {titles[view].heading}
+        </h1>
+        <p className="text-muted-foreground text-sm">{titles[view].sub}</p>
       </div>
 
       {/* card */}

@@ -2,12 +2,8 @@ import { GoogleIcon, GithubIcon } from "../icon";
 
 export default function OAuthButtons() {
   const handleOAuthRedirect = (provider: "google" | "github") => {
-    // 💡 這些 Client ID 可以直接放在前端環境變數 .env.local 中
-    console.log("當前環境變數：", process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
     if (provider === "google") {
-      // 💡 改成這樣：直接讀取，不給備用字串
-      const clientId =
-        "179387694143-8t0b5m3011v06nvvf2c5nitac461qqok.apps.googleusercontent.com";
+      const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
       if (!clientId) {
         console.error(
@@ -24,7 +20,7 @@ export default function OAuthButtons() {
 
       window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=google`;
     } else if (provider === "github") {
-      const clientId = "Ov23lilKiPY2xsIg96kx";
+      const clientId = process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID;
       const redirectUri = encodeURIComponent(
         "http://localhost:3000/oauth/callback",
       );

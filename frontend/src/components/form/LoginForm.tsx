@@ -6,6 +6,7 @@ import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import OAuthButtons from "../buttons/OAuthButtons";
 import Spinner from "../common/Spinner";
 import api from "@/lib/api";
+import axios from "axios";
 
 interface LoginFormProps {
   onSwitch: (view: "register" | "forgot") => void;
@@ -41,8 +42,10 @@ export default function LoginForm({ onSwitch }: LoginFormProps) {
         const userName = response.data.user.name;
         router.push(`/dashboard?name=${encodeURIComponent(userName)}`);
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || "登入失敗，請稍後再試");
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        setError(err.response?.data?.message || "登入失敗，請稍後再試");
+      }
     } finally {
       setLoading(false);
     }
@@ -85,6 +88,7 @@ export default function LoginForm({ onSwitch }: LoginFormProps) {
             onClick={() => setShowPassword(!showPassword)}
             type="button"
             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
+            tabIndex={-1}
           >
             {showPassword ? <AiOutlineEye /> : <AiOutlineEyeInvisible />}
           </button>

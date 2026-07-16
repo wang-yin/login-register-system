@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import api from "@/lib/api";
+import axios from "axios";
 
 interface ResetStepProps {
   resetToken: string;
@@ -20,8 +21,12 @@ export default function ResetStep({ resetToken, onSuccess }: ResetStepProps) {
     e.preventDefault();
     setError("");
 
+    if (!newPassword || !confirmPassword) {
+      setError("請填寫所有欄位");
+      return;
+    }
     if (newPassword.length < 8) {
-      setError("密碼長度需至少為 8 個字元");
+      setError("密碼長度需至少為 8 個字");
       return;
     }
 
@@ -31,17 +36,20 @@ export default function ResetStep({ resetToken, onSuccess }: ResetStepProps) {
     }
 
     setLoading(true);
+
     try {
       await api.post("/auth/reset-password", {
         token: resetToken,
         password: newPassword,
       });
       onSuccess(); // 成功進入 DoneStep
-    } catch (err: any) {
-      setError(
-        err.response?.data?.message ||
-          "重設密碼失敗，驗證憑證可能已逾期，請重新申請",
-      );
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        setError(
+          err.response?.data?.message ||
+            "重設密碼失敗，驗證憑證可能已逾期，請重新申請",
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -57,7 +65,7 @@ export default function ResetStep({ resetToken, onSuccess }: ResetStepProps) {
           <input
             type={showPassword ? "text" : "password"}
             id="new-password"
-            placeholder="至少 8 個字元"
+            placeholder="至少 8 個字"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             className="w-full px-4 py-3 pr-12 rounded-lg bg-muted border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
@@ -66,6 +74,7 @@ export default function ResetStep({ resetToken, onSuccess }: ResetStepProps) {
             type="button"
             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
             onClick={() => setShowPassword(!showPassword)}
+            tabIndex={-1}
           >
             {showPassword ? <AiOutlineEye /> : <AiOutlineEyeInvisible />}
           </button>
@@ -88,7 +97,11 @@ export default function ResetStep({ resetToken, onSuccess }: ResetStepProps) {
           className="w-full px-4 py-3 pr-12 rounded-lg bg-muted border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
         ></input>
       </div>
-      {error && <div>{error}</div>}
+      {error && (
+        <div className="px-4 py-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
+          {error}
+        </div>
+      )}
       <button
         type="submit"
         disabled={loading}

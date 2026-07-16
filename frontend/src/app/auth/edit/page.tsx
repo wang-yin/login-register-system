@@ -6,6 +6,7 @@ import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import Spinner from "@/components/common/Spinner";
 import SuccessStatus from "./SuccessStatus";
 import api from "@/lib/api";
+import axios from "axios";
 
 interface UserProfile {
   name: string;
@@ -43,9 +44,12 @@ export default function Edit() {
         setName(userData.name);
         setEmail(userData.email);
         setIsEmailVerified(userData.isEmailVerified);
-      } catch (err: any) {
-        console.error("無法獲取用戶資料", err);
-        setErrorMsg("登入憑證失效，請重新登入");
+      } catch (err: unknown) {
+        let finalErrorMsg = "登入憑證失效，請重新登入";
+        if (axios.isAxiosError(err)) {
+          finalErrorMsg = err.response?.data?.message || finalErrorMsg;
+        }
+        setErrorMsg(finalErrorMsg);
         setTimeout(() => router.push("/"), 2000);
       } finally {
         setPageLoading(false);
@@ -66,14 +70,18 @@ export default function Edit() {
       await api.post("/auth/send-verification");
       setSuccessMsg("驗證信已發送至您的信箱，請查收！");
       setTimeout(() => setSuccessMsg(""), 5000); // 5秒後自動隱藏成功訊息
-    } catch (err: any) {
-      setErrorMsg(err.response?.data?.message || "發送驗證信失敗，請稍後再試");
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        setErrorMsg(
+          err.response?.data?.message || "發送驗證信失敗，請稍後再試",
+        );
+      }
     } finally {
       setVerifyLoading(false);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrorMsg("");
     setSuccessMsg("");
@@ -127,8 +135,10 @@ export default function Edit() {
           }, 3000);
         }
       }
-    } catch (err: any) {
-      setErrorMsg(err.response?.data?.message || "資料更新失敗，請稍後再試");
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        setErrorMsg(err.response?.data?.message || "資料更新失敗，請稍後再試");
+      }
     } finally {
       setLoading(false);
     }
@@ -173,7 +183,6 @@ export default function Edit() {
           </div>
         )}
 
-        {/* 欄位：名字 */}
         <div className="space-y-1">
           <label
             htmlFor="change-name"
@@ -192,7 +201,6 @@ export default function Edit() {
           />
         </div>
 
-        {/* 欄位：信箱（唯讀）與認證狀態標籤 */}
         <div className="space-y-1">
           <label className="text-sm text-muted-foreground block">
             電子信箱
@@ -200,7 +208,6 @@ export default function Edit() {
           <div className="flex items-center gap-3 bg-muted border border-border px-4 py-3 rounded-lg text-muted-foreground text-sm">
             <span className="truncate flex-1">{email || "載入中..."}</span>
 
-            {/* 根據後端 isEmailVerified 渲染標籤與按鈕 */}
             {isEmailVerified ? (
               <span className="bg-green-500/20 text-green-400 border border-green-500/30 text-xs px-2.5 py-1 rounded-md font-medium shrink-0">
                 已認證
@@ -214,7 +221,7 @@ export default function Edit() {
                   type="button"
                   disabled={verifyLoading}
                   onClick={handleSendVerification}
-                  className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded hover:bg-primary/90 disabled:opacity-50 transition-all font-medium"
+                  className="text-xs bg-primary text-white px-2 py-1 rounded hover:bg-primary/90 disabled:opacity-50 transition-all font-medium"
                 >
                   {verifyLoading ? "發送中..." : "啟動認證"}
                 </button>
@@ -223,7 +230,6 @@ export default function Edit() {
           </div>
         </div>
 
-        {/* 欄位：密碼 */}
         <div className="space-y-1">
           <label
             htmlFor="reg-password"
@@ -245,13 +251,13 @@ export default function Edit() {
               onClick={() => setShowPassword(!showPassword)}
               type="button"
               className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1 transition-colors"
+              tabIndex={-1}
             >
               {showPassword ? <AiOutlineEye /> : <AiOutlineEyeInvisible />}
             </button>
           </div>
         </div>
 
-        {/* 欄位：確認密碼 */}
         <div className="space-y-1">
           <label
             htmlFor="reg-confirm"
@@ -273,7 +279,6 @@ export default function Edit() {
           )}
         </div>
 
-        {/* 按鈕操作區 */}
         <div className="pt-2 space-y-2">
           <button
             type="submit"
