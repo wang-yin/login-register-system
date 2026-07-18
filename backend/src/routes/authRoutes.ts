@@ -11,7 +11,7 @@ import {
   forgotPassword,
   verifyResetCode,
   resetPassword,
-} from "../controllers/authController";
+} from "../controllers/auth.controller";
 import { authMiddleware } from "../middlewares/authMiddleware";
 
 const router = Router();
