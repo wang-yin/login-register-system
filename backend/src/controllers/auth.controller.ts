@@ -82,8 +82,8 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     // 防禦 XSS 攻擊
     res.cookie("token", token, {
       httpOnly: true,
-      secure: false, // 只在 https 下傳輸（開發環境先關掉）
-      sameSite: "lax", // 防禦 CSRF 攻擊
+      secure: true,
+      sameSite: "none",
       maxAge: cookieMaxAge, // Cookie 有效期跟著 Token 走 (7天)
     });
 
@@ -228,8 +228,8 @@ export const oauthLogin = async (
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      secure: true,
+      sameSite: "none",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -252,8 +252,8 @@ export const logout = async (req: Request, res: Response): Promise<void> => {
   try {
     res.clearCookie("token", {
       httpOnly: true,
-      secure: false, // 開發環境先關掉（保持與 login 設定一致）
-      sameSite: "lax",
+      secure: true,
+      sameSite: "none",
     });
 
     res.status(200).json({ message: "登出成功！" });
@@ -269,7 +269,7 @@ export const getCurrentUser = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const currentUserId = (req as any).userId;
+    const currentUserId = req.userId;
 
     if (!currentUserId) {
       res.status(401).json({ message: "未授權，請先登入" });
@@ -278,7 +278,7 @@ export const getCurrentUser = async (
 
     // 查資料庫，並排除敏感欄位（如 password、resetToken 等）
     const user = await User.findById(currentUserId).select(
-      "-password -resetPasswordToken -resetPasswordExpires",
+      "-password -resetCode -resetCodeExpires",
     );
 
     if (!user) {
@@ -428,7 +428,7 @@ export const sendVerificationEmail = async (
   }
 };
 
-// ➡️ 2. 驗證 Token 並開通帳號 API
+// 驗證 Token 並開通帳號 API
 export const verifyEmail = async (
   req: Request,
   res: Response,
