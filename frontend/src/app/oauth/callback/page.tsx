@@ -7,8 +7,9 @@ import axios from "axios";
 import ErrorStatus from "./ErrorStatus";
 import SuccessStatus from "./SuccessStatus";
 import LoadingStatus from "./LoadingStatus";
+import { Suspense } from "react";
 
-export default function OAuthCallbackPage() {
+function OAuthCallbackPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -74,5 +75,19 @@ export default function OAuthCallbackPage() {
         {status === "error" && <ErrorStatus errorMsg={errorMsg} />}
       </div>
     </div>
+  );
+}
+
+export default function OAuthCallbackPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-6 text-center text-sm text-muted-foreground">
+          載入設定中...
+        </div>
+      }
+    >
+      <OAuthCallbackPageContent />
+    </Suspense>
   );
 }

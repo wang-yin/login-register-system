@@ -7,8 +7,9 @@ import SuccessStatus from "./SuccessStatus";
 import LoadingStatus from "./LoadingStatus";
 import ErrorStatus from "./ErrorStatus";
 import axios from "axios";
+import { Suspense } from "react";
 
-export default function VerifyEmailPage() {
+function VerifyEmailPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
@@ -79,5 +80,19 @@ export default function VerifyEmailPage() {
         {status === "error" && <ErrorStatus message={message} />}
       </div>
     </div>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-6 text-center text-sm text-muted-foreground">
+          載入設定中...
+        </div>
+      }
+    >
+      <VerifyEmailPageContent />
+    </Suspense>
   );
 }

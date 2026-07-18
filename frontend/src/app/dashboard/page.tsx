@@ -3,8 +3,9 @@
 import CheckIcon from "@/components/icon/CheckIcon";
 import { useSearchParams, useRouter } from "next/navigation";
 import api from "@/lib/api";
+import { Suspense } from "react";
 
-export default function DashboardPage() {
+function DashboardPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const name = searchParams.get("name") ?? "使用者";
@@ -15,7 +16,6 @@ export default function DashboardPage() {
     } catch (err) {
       console.error("登出失敗", err);
     } finally {
-      // 無論後端成功與否，前端都強制跳轉回登入頁
       router.push("/");
     }
   };
@@ -45,5 +45,19 @@ export default function DashboardPage() {
         </button>
       </div>
     </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-6 text-center text-sm text-muted-foreground">
+          載入設定中...
+        </div>
+      }
+    >
+      <DashboardPageContent />
+    </Suspense>
   );
 }
