@@ -7,6 +7,7 @@ import Spinner from "@/components/common/Spinner";
 import SuccessStatus from "./SuccessStatus";
 import api from "@/lib/api";
 import axios from "axios";
+import { Suspense } from "react";
 
 interface UserProfile {
   name: string;
@@ -14,7 +15,7 @@ interface UserProfile {
   isEmailVerified: boolean;
 }
 
-export default function Edit() {
+function EditContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -298,5 +299,19 @@ export default function Edit() {
         </div>
       </form>
     </div>
+  );
+}
+
+export default function Edit() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-6 text-center text-sm text-muted-foreground">
+          載入設定中...
+        </div>
+      }
+    >
+      <EditContent />
+    </Suspense>
   );
 }
