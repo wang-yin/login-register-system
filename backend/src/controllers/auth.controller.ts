@@ -127,7 +127,8 @@ export const oauthLogin = async (
           code,
           client_id: process.env.GOOGLE_CLIENT_ID,
           client_secret: process.env.GOOGLE_CLIENT_SECRET,
-          redirect_uri: "http://localhost:3000/oauth/callback",
+          redirect_uri:
+            process.env.REDIRECT_URL || "http://localhost:3000/oauth/callback",
           grant_type: "authorization_code",
         },
       );
@@ -215,9 +216,8 @@ export const oauthLogin = async (
       await user.save();
     }
 
-    // ==========================================
-    // 3. 核發 JWT 與安全 Cookie 的寫入
-    // ==========================================
+    // 核發 JWT 與安全 Cookie 的寫入
+
     const JWT_SECRET = (process.env.JWT_SECRET ||
       "YOUR_JWT_SECRET_KEY") as string;
     const token = jwt.sign(
