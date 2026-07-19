@@ -3,7 +3,7 @@ import User from "../models/User";
 import jwt from "jsonwebtoken";
 import axios from "axios";
 import { AuthenticatedRequest } from "../middlewares/authMiddleware";
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -354,25 +354,10 @@ export const updateProfileOrPassword = async (
   }
 };
 
-// Nodemailer
+// resend
 const JWT_SECRET = (process.env.JWT_SECRET || "YOUR_JWT_SECRET_KEY") as string;
 
-// 初始化 Nodemailer 發信傳輸器
-const transporter = nodemailer.createTransport({
-  host: "74.125.130.108",
-  port: parseInt(process.env.EMAIL_PORT || "587"),
-  secure: false,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-  tls: {
-    rejectUnauthorized: false,
-    // 大招 2：強制 TLS 連線時的伺服器名稱校驗對象依然是 gmail，防止跳出憑證網域不符的錯誤 (Hostname/IP mismatch)
-    servername: "smtp.gmail.com",
-  },
-} as nodemailer.TransportOptions);
-
+const resend = new Resend(process.env.RESEND_API_KEY);
 // 發送驗證信 API
 export const sendVerificationEmail = async (
   req: AuthenticatedRequest,
@@ -403,9 +388,10 @@ export const sendVerificationEmail = async (
     const verificationLink = `${process.env.FRONTEND_URL}/auth/verify-email?token=${verificationToken}`;
 
     // 配置郵件內容
-    const mailOptions = {
-      from: `"AuthSystem" <${process.env.EMAIL_USER}>`, // 發件人
-      to: user.email, // 收件人
+    await resend.emails.send({
+      // ⚠️ 免費測試帳號在未綁定個人網域前，發件人必須固定寫死 'onboarding@resend.dev'
+      from: "AuthSystem <onboarding@resend.dev>",
+      to: user.email, // ⚠️ 免費模式下，收件人必須是你註冊 Resend 的那個管理員信箱
       subject: "【驗證通知】請驗證您的電子郵件地址",
       html: `
         <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px;">
@@ -421,10 +407,7 @@ export const sendVerificationEmail = async (
           <a href="${verificationLink}" style="color: #3b82f6;">${verificationLink}</a></p>
         </div>
       `,
-    };
-
-    // 執行發信
-    await transporter.sendMail(mailOptions);
+    });
 
     res.status(200).json({ message: "驗證信已成功發送，請至信箱查收" });
   } catch (error: any) {
@@ -519,8 +502,8 @@ export const forgotPassword = async (
     await user.save();
 
     // 發信
-    await transporter.sendMail({
-      from: `"AuthSystem" <${process.env.EMAIL_USER}>`,
+    await resend.emails.send({
+      from: "AuthSystem <onboarding@resend.dev>",
       to: user.email,
       subject: "【安全驗證】您的密碼重設驗證碼",
       html: `
