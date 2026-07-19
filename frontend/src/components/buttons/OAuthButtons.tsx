@@ -14,7 +14,8 @@ export default function OAuthButtons() {
       }
 
       const redirectUri = encodeURIComponent(
-        "http://localhost:3000/oauth/callback",
+        process.env.NEXT_PUBLIC_REDIRECT_URL ||
+          "http://localhost:3000/oauth/callback",
       );
       const scope = encodeURIComponent("profile email");
 
@@ -22,7 +23,8 @@ export default function OAuthButtons() {
     } else if (provider === "github") {
       const clientId = process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID;
       const redirectUri = encodeURIComponent(
-        "http://localhost:3000/oauth/callback",
+        process.env.NEXT_PUBLIC_REDIRECT_URL ||
+          "http://localhost:3000/oauth/callback",
       );
       const scope = encodeURIComponent("user:email");
 
