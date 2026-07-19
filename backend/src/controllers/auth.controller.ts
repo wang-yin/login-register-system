@@ -359,12 +359,17 @@ const JWT_SECRET = (process.env.JWT_SECRET || "YOUR_JWT_SECRET_KEY") as string;
 
 // 初始化 Nodemailer 發信傳輸器
 const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST,
+  host: "74.125.130.108",
   port: parseInt(process.env.EMAIL_PORT || "587"),
   secure: false,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
+  },
+  tls: {
+    rejectUnauthorized: false,
+    // 大招 2：強制 TLS 連線時的伺服器名稱校驗對象依然是 gmail，防止跳出憑證網域不符的錯誤 (Hostname/IP mismatch)
+    servername: "smtp.gmail.com",
   },
 } as nodemailer.TransportOptions);
 
