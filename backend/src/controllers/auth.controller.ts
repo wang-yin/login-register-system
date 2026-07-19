@@ -360,8 +360,8 @@ const JWT_SECRET = (process.env.JWT_SECRET || "YOUR_JWT_SECRET_KEY") as string;
 // 1. 初始化 Nodemailer 發信傳輸器
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
-  port: parseInt(process.env.EMAIL_PORT || "587"),
-  secure: process.env.EMAIL_PORT === "465",
+  port: parseInt(process.env.EMAIL_PORT || "465"),
+  secure: true,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
