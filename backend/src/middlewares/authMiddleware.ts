@@ -13,8 +13,7 @@ export const authMiddleware = (
   next: NextFunction,
 ): void => {
   try {
-    // 1. 從 Cookie 中取出當初鎖進去的 token
-    // 💡 註：後端必須使用 `cookie-parser` 套件才能直接讀取 req.cookies
+    // 從 Cookie 中取出當初鎖進去的 token
     const token = req.cookies?.token;
 
     if (!token) {
@@ -22,7 +21,7 @@ export const authMiddleware = (
       return;
     }
 
-    // 2. 驗證並解密 Token
+    // 驗證並解密 Token
     const JWT_SECRET = (process.env.JWT_SECRET ||
       "YOUR_JWT_SECRET_KEY") as string;
     const decoded = jwt.verify(token, JWT_SECRET) as {
@@ -30,11 +29,11 @@ export const authMiddleware = (
       email: string;
     };
 
-    // 3. 將解密出來的資料掛載到 req 物件上，讓後續的 Controller 可以直接用
+    // 將解密出來的資料掛載到 req 物件上，讓後續的 Controller 可以直接用
     req.userId = decoded.userId;
     req.email = decoded.email;
 
-    // 4. 通過驗證，繼續執行下一個 Controller
+    // 通過驗證，繼續執行下一個 Controller
     next();
   } catch (error: any) {
     console.error("JWT 驗證失敗:", error.message);

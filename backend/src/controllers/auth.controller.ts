@@ -187,7 +187,7 @@ export const oauthLogin = async (
     let user = await User.findOne({ email: normalizedEmail });
 
     if (!user) {
-      // 👉 狀況 1：全新的帳號 ➡️ 直接建立，預設已驗證
+      // 狀況 1：全新的帳號 -> 直接建立，預設已驗證
       user = new User({
         name,
         email: normalizedEmail,
@@ -197,8 +197,8 @@ export const oauthLogin = async (
       await user.save();
       console.log("儲存後的用戶資料：", user);
     } else {
-      // 👉 狀況 2：帳號已存在（可能是傳統註冊進來的，且還沒驗證信箱）
-      // ➡️ 既然他能透過 Google 登入這個信箱，代表他就是主人，直接幫他把信箱改為「已驗證」！
+      // 狀況 2：帳號已存在（可能是傳統註冊進來的，且還沒驗證信箱）
+      // -> 既然他能透過 Google 登入這個信箱，代表他就是主人，直接幫他把信箱改為「已驗證」！
       if (!user.isEmailVerified) {
         user.isEmailVerified = true;
       }
@@ -357,18 +357,18 @@ export const updateProfileOrPassword = async (
 // Nodemailer
 const JWT_SECRET = (process.env.JWT_SECRET || "YOUR_JWT_SECRET_KEY") as string;
 
-// 1. 初始化 Nodemailer 發信傳輸器
+// 初始化 Nodemailer 發信傳輸器
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
-  port: parseInt(process.env.EMAIL_PORT || "465"),
-  secure: true,
+  port: parseInt(process.env.EMAIL_PORT || "587"),
+  secure: false,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
 } as nodemailer.TransportOptions);
 
-// ➡️ 1. 發送驗證信 API
+// 發送驗證信 API
 export const sendVerificationEmail = async (
   req: AuthenticatedRequest,
   res: Response,
@@ -397,7 +397,7 @@ export const sendVerificationEmail = async (
     // 拼接前端的驗證接收頁面網址
     const verificationLink = `${process.env.FRONTEND_URL}/auth/verify-email?token=${verificationToken}`;
 
-    // 2. 配置郵件內容
+    // 配置郵件內容
     const mailOptions = {
       from: `"AuthSystem" <${process.env.EMAIL_USER}>`, // 發件人
       to: user.email, // 收件人
@@ -418,7 +418,7 @@ export const sendVerificationEmail = async (
       `,
     };
 
-    // 3. 執行發信
+    // 執行發信
     await transporter.sendMail(mailOptions);
 
     res.status(200).json({ message: "驗證信已成功發送，請至信箱查收" });
@@ -577,7 +577,7 @@ export const verifyResetCode = async (
 
     res.status(200).json({
       message: "驗證碼審核成功",
-      resetToken, // 👈 把這張門票交給前端
+      resetToken, // 把這張門票交給前端
     });
   } catch (error) {
     res.status(500).json({ message: "伺服器內部錯誤" });
