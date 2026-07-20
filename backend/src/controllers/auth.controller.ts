@@ -84,7 +84,9 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       httpOnly: true,
       secure: true,
       sameSite: "none",
-      maxAge: cookieMaxAge, // Cookie 有效期跟著 Token 走 (7天)
+      maxAge: cookieMaxAge,
+      path: "/",
+      partitioned: true,
     });
 
     res.status(200).json({
