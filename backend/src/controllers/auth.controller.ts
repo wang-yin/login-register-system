@@ -52,7 +52,13 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     // 尋找使用者是否存在
     const user = await User.findOne({ email });
     if (!user) {
-      res.clearCookie("token");
+      res.clearCookie("token", {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+        path: "/",
+        partitioned: true,
+      });
       res.status(401).json({ message: "電子郵件或密碼錯誤" });
       return;
     }
@@ -60,7 +66,13 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     // 比對密碼
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      res.clearCookie("token");
+      res.clearCookie("token", {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+        path: "/",
+        partitioned: true,
+      });
       res.status(401).json({ message: "電子郵件或密碼錯誤" });
       return;
     }
@@ -256,6 +268,8 @@ export const logout = async (req: Request, res: Response): Promise<void> => {
       httpOnly: true,
       secure: true,
       sameSite: "none",
+      path: "/",
+      partitioned: true,
     });
 
     res.status(200).json({ message: "登出成功！" });
