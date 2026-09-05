@@ -32,33 +32,42 @@ function OAuthCallbackPageContent() {
     if (hasSentRequest.current) return;
     hasSentRequest.current = true;
 
-    // 執行幕後轉交：把 code 送給 Express 後端
     const sendCodeToBackend = async () => {
       try {
-        const response = await api.post("/auth/oauth/callback", {
-          provider, // "google" 或 "github"
-          code, // 臨時號碼牌
-        });
+        // 加上 8 秒 Timeout，避免第三方換 Token 或後端處理時無限卡死
+        const response = await api.post(
+          "/auth/oauth/callback",
+          { provider, code },
+          { timeout: 8000 },
+        );
 
         if (response.status === 200) {
           setStatus("success");
           const userName = response.data?.user?.name;
           setTimeout(() => {
-            router.push(`/dashboard?name=${encodeURIComponent(userName)}`);
-          }, 3000);
+            router.push(
+              `/dashboard?name=${encodeURIComponent(userName || "")}`,
+            );
+          }, 2000);
         }
       } catch (err: unknown) {
+        setStatus("error");
         if (axios.isAxiosError(err)) {
-          setStatus("error");
-          setErrorMsg(
-            err.response?.data?.message || "第三方登入失敗，請稍後再試",
-          );
+          if (err.code === "ECONNABORTED") {
+            setErrorMsg("伺服器回應超時，請檢查後端服務是否正常後重試");
+          } else {
+            setErrorMsg(
+              err.response?.data?.message || "第三方登入驗證失敗，請重新登入",
+            );
+          }
+        } else {
+          setErrorMsg("發生未知錯誤，請稍後再試");
         }
       }
     };
 
     sendCodeToBackend();
-  }, [searchParams, router, isInvalid]);
+  }, [isInvalid, code, provider, router]);
 
   if (isInvalid) {
     const errorMsg = "認證失敗：網址未帶有授權碼 code 或 provider 資訊";
