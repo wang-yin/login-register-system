@@ -17,19 +17,18 @@ export default function Home() {
   useEffect(() => {
     const checkLoggedStatus = async () => {
       try {
-        // 進到首頁，立刻去後端問：「我有沒有有效的 Token？」
-        const response = await api.get("/auth/profile");
+        // 建議加入 timeout 避免無限等待（例如 5 秒沒回應直接當作未登入處理）
+        const response = await api.get("/auth/profile", { timeout: 5000 });
 
-        // 如果後端驗證成功，代表 Token 還活著，直接自動分流進 Dashboard
         if (response.data?.user) {
           const userName = response.data.user.name;
           router.push(`/dashboard?name=${encodeURIComponent(userName)}`);
-          return; // 結束執行，保持 checkingAuth 為 true，不讓表單露臉
+          return; // 成功跳轉，保持 checkingAuth 為 true 避免畫面閃爍
         }
-      } catch (err) {
-        console.log("使用者未登入或 Token 已過期，留在首頁。");
-        // 驗證失敗代表沒登入，關閉載入狀態，把表單秀出來給使用者看
         setCheckingAuth(false);
+      } catch (err) {
+        console.log("驗證失敗、連線逾時或未登入：", err);
+        setCheckingAuth(false); // 發生錯誤時確保取消載入狀態
       }
     };
 
