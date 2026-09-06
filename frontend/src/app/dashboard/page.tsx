@@ -40,8 +40,10 @@ function DashboardPageContent() {
     } catch (err) {
       console.error("登出失敗", err);
     } finally {
+      localStorage.clear();
+      sessionStorage.clear();
       // 登出改用硬跳轉，徹底清洗 Next.js 前端快取與記憶體狀態
-      window.location.href = "/";
+      window.location.replace("/");
     }
   };
 

@@ -15,24 +15,31 @@ export default function Home() {
   const [checkingAuth, setCheckingAuth] = useState(true);
 
   useEffect(() => {
+    let isMounted = true; // 防止非預期的非同步回應覆寫狀態
+
     const checkLoggedStatus = async () => {
       try {
-        // 建議加入 timeout 避免無限等待（例如 5 秒沒回應直接當作未登入處理）
-        const response = await api.get("/auth/profile", { timeout: 5000 });
+        const response = await api.get("/auth/profile", { timeout: 3000 });
+
+        // 如果組件已卸載或已被帶走，不執行跳轉
+        if (!isMounted) return;
 
         if (response.data?.user) {
           const userName = response.data.user.name;
           router.push(`/dashboard?name=${encodeURIComponent(userName)}`);
-          return; // 成功跳轉，保持 checkingAuth 為 true 避免畫面閃爍
+        } else {
+          setCheckingAuth(false);
         }
-        setCheckingAuth(false);
       } catch (err) {
-        console.log("驗證失敗、連線逾時或未登入：", err);
-        setCheckingAuth(false); // 發生錯誤時確保取消載入狀態
+        if (isMounted) setCheckingAuth(false);
       }
     };
 
     checkLoggedStatus();
+
+    return () => {
+      isMounted = false; // 清理函式
+    };
   }, [router]);
 
   const titles: Record<view, { heading: string; sub: string }> = {
