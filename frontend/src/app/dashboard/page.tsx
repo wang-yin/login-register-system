@@ -34,17 +34,22 @@ function DashboardPageContent() {
     verifyAuth();
   }, []);
 
-  const handleLogout = async () => {
+  const handleLogout = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault(); // 阻止按鈕預設行為
+    console.log("=== 1. 點擊登出按鈕成功 ===");
+
     try {
       const res = await api.post("/auth/logout");
-      console.log("後端登出回應：", res.data);
+      console.log("=== 2. 後端登出回應 ===", res.data);
     } catch (err) {
-      console.error("登出請求失敗：", err);
-      alert("登出失敗，請檢查 Console");
-      return; // 暫不跳轉，觀察 console 訊息
+      console.error("=== 登出失敗 ===", err);
+      alert("登出失敗，請看 Console");
+      return;
     }
 
-    window.location.replace("/");
+    console.log("=== 3. 準備跳轉 ===");
+    // 先把跳轉註解掉！確認 Console 印得出 1、2、3 再取消註解
+    // window.location.replace("/");
   };
 
   if (loading) {
@@ -73,6 +78,7 @@ function DashboardPageContent() {
           修改
         </button>
         <button
+          type="button"
           onClick={handleLogout}
           className="w-full text-primary text-sm  hover:underline"
         >
