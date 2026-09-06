@@ -19,7 +19,7 @@ const router = Router();
 router.post("/register", register);
 router.post("/login", login);
 router.post("/oauth/callback", oauthLogin);
-router.post("/logout", logout);
+router.post("/logout", authMiddleware, logout);
 router.get("/profile", authMiddleware, getCurrentUser);
 router.put("/update", authMiddleware, updateProfileOrPassword);
 router.post("/verify-email", verifyEmail);

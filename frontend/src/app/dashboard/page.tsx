@@ -36,15 +36,15 @@ function DashboardPageContent() {
 
   const handleLogout = async () => {
     try {
-      await api.post("/auth/logout");
+      const res = await api.post("/auth/logout");
+      console.log("後端登出回應：", res.data);
     } catch (err) {
-      console.error("登出失敗", err);
-    } finally {
-      localStorage.clear();
-      sessionStorage.clear();
-      // 登出改用硬跳轉，徹底清洗 Next.js 前端快取與記憶體狀態
-      window.location.replace("/");
+      console.error("登出請求失敗：", err);
+      alert("登出失敗，請檢查 Console");
+      return; // 暫不跳轉，觀察 console 訊息
     }
+
+    window.location.replace("/");
   };
 
   if (loading) {
