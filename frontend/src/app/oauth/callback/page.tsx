@@ -45,10 +45,8 @@ function OAuthCallbackPageContent() {
           setStatus("success");
           const userName = response.data?.user?.name;
           setTimeout(() => {
-            router.push(
-              `/dashboard?name=${encodeURIComponent(userName || "")}`,
-            );
-          }, 2000);
+            router.replace("/dashboard");
+          }, 1500);
         }
       } catch (err: unknown) {
         setStatus("error");

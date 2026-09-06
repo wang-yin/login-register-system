@@ -16,18 +16,17 @@ function DashboardPageContent() {
   useEffect(() => {
     const verifyAuth = async () => {
       try {
-        // 頁面載入時，立刻向後端索取當前登入者資料
+        // 頁面載入時，直接向後端驗證身分並取得最新 User 資料
         const response = await api.get("/auth/profile");
 
-        // 如果後端驗證成功，把真實的名字存下來
         if (response.data?.user?.name) {
           setRealName(response.data.user.name);
         }
         setLoading(false);
       } catch (err) {
-        console.error("身份驗證失敗，Token 可能已失效或不存在", err);
-        // 驗證失敗（沒 token 或過期），立刻強行踢回首頁/登入頁
-        window.location.href = "/";
+        console.error("身分驗證失敗，Token 可能已失效或不存在", err);
+        // 驗證失敗立刻踢回首頁/登入頁
+        window.location.replace("/");
       }
     };
 
@@ -35,7 +34,7 @@ function DashboardPageContent() {
   }, []);
 
   const handleLogout = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault(); // 阻止按鈕預設行為
+    e.preventDefault();
     console.log("=== 1. 點擊登出按鈕成功 ===");
 
     try {
@@ -48,8 +47,11 @@ function DashboardPageContent() {
     }
 
     console.log("=== 3. 準備跳轉 ===");
-    // 先把跳轉註解掉！確認 Console 印得出 1、2、3 再取消註解
-    // window.location.replace("/");
+    localStorage.clear();
+    sessionStorage.clear();
+
+    // 關鍵修改：強制導向至網站根目錄網址（自動抹除任何 ?code= 或 ?name= 等 URL 參數）
+    window.location.href = window.location.origin;
   };
 
   if (loading) {
