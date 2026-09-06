@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import axios from "axios";
 import { AuthenticatedRequest } from "../middlewares/authMiddleware";
 import { Resend } from "resend";
+import getCookieOptions from "../config/cookie";
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -52,13 +53,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     // 尋找使用者是否存在
     const user = await User.findOne({ email });
     if (!user) {
-      res.clearCookie("token", {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-        path: "/",
-        partitioned: true,
-      });
+      res.clearCookie("token", getCookieOptions());
       res.status(401).json({ message: "電子郵件或密碼錯誤" });
       return;
     }
@@ -66,13 +61,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     // 比對密碼
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      res.clearCookie("token", {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-        path: "/",
-        partitioned: true,
-      });
+      res.clearCookie("token", getCookieOptions());
       res.status(401).json({ message: "電子郵件或密碼錯誤" });
       return;
     }
@@ -91,15 +80,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       },
     );
 
-    // 防禦 XSS 攻擊
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      maxAge: cookieMaxAge,
-      path: "/",
-      partitioned: true,
-    });
+    res.cookie("token", token, getCookieOptions(cookieMaxAge));
 
     res.status(200).json({
       message: "登入成功！",
@@ -240,12 +221,7 @@ export const oauthLogin = async (
       { expiresIn: "7d" },
     );
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    res.cookie("token", token, getCookieOptions(7 * 24 * 60 * 60 * 1000));
 
     res.status(200).json({
       message: `${provider === "google" ? "Google" : "GitHub"} 登入成功！`,
@@ -264,14 +240,7 @@ export const oauthLogin = async (
 // logout
 export const logout = async (req: Request, res: Response): Promise<void> => {
   try {
-    res.clearCookie("token", {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      path: "/",
-      partitioned: true,
-    });
-
+    res.clearCookie("token", getCookieOptions());
     res.status(200).json({ message: "登出成功！" });
   } catch (error: any) {
     console.error("登出出錯了：", error);
