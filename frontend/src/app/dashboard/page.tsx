@@ -35,23 +35,21 @@ function DashboardPageContent() {
 
   const handleLogout = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    console.log("=== 1. 點擊登出按鈕成功 ===");
 
     try {
-      const res = await api.post("/auth/logout");
-      console.log("=== 2. 後端登出回應 ===", res.data);
+      await api.post("/auth/logout");
     } catch (err) {
-      console.error("=== 登出失敗 ===", err);
-      alert("登出失敗，請看 Console");
+      console.error("登出失敗：", err);
+      alert("登出失敗，請稍後再試");
       return;
     }
 
-    console.log("=== 3. 準備跳轉 ===");
+    // 清除本地儲存空間
     localStorage.clear();
     sessionStorage.clear();
 
-    // 關鍵修改：強制導向至網站根目錄網址（自動抹除任何 ?code= 或 ?name= 等 URL 參數）
-    window.location.href = window.location.origin;
+    // 關鍵：使用 replace 強制導向根目錄，不留瀏覽歷史紀錄
+    window.location.replace("/");
   };
 
   if (loading) {
