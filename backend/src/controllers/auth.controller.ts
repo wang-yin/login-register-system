@@ -240,6 +240,10 @@ export const oauthLogin = async (
 // logout
 export const logout = async (req: Request, res: Response): Promise<void> => {
   try {
+    res.setHeader(
+      "Cache-Control",
+      "no-store, no-cache, must-revalidate, proxy-revalidate",
+    );
     res.clearCookie("token", getCookieOptions());
     res.status(200).json({ message: "登出成功！" });
   } catch (error: any) {
@@ -271,6 +275,14 @@ export const getCurrentUser = async (
       return;
     }
 
+    // ⚠️ 在這裡加入禁止快取的標頭，確保瀏覽器或 Axios 每次都會向後端發起真實請求
+    res.setHeader(
+      "Cache-Control",
+      "no-store, no-cache, must-revalidate, proxy-revalidate",
+    );
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
+
     // 回傳給前端，格式要與前端定義的 UserProfile interface 對齊
     res.status(200).json({
       message: "獲取用戶資料成功",
@@ -279,7 +291,7 @@ export const getCurrentUser = async (
         name: user.name,
         email: user.email,
         isEmailVerified: user.isEmailVerified,
-        providers: user.providers, // 如果前端需要顯示綁定了哪些平台，也可以一併回傳
+        providers: user.providers,
       },
     });
   } catch (error: any) {

@@ -15,18 +15,22 @@ export default function Home() {
   const [checkingAuth, setCheckingAuth] = useState(true);
 
   useEffect(() => {
-    let isMounted = true; // 防止非預期的非同步回應覆寫狀態
+    let isMounted = true;
 
     const checkLoggedStatus = async () => {
       try {
-        const response = await api.get("/auth/profile", { timeout: 3000 });
+        // 加上時間戳記 _t，強迫每次都必須向後端實體伺服器發起請求
+        const response = await api.get("/auth/profile", {
+          params: { _t: Date.now() },
+          headers: { "Cache-Control": "no-cache" },
+          timeout: 3000,
+        });
 
-        // 如果組件已卸載或已被帶走，不執行跳轉
         if (!isMounted) return;
 
         if (response.data?.user) {
-          const userName = response.data.user.name;
-          router.push(`/dashboard?name=${encodeURIComponent(userName)}`);
+          // 只有真的確定後端回傳 user 時才跳轉
+          router.push("/dashboard");
         } else {
           setCheckingAuth(false);
         }
@@ -38,7 +42,7 @@ export default function Home() {
     checkLoggedStatus();
 
     return () => {
-      isMounted = false; // 清理函式
+      isMounted = false;
     };
   }, [router]);
 
